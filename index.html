@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow Composer</title>
+    <meta name="description" content="Compose research flows">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12h18m-9-9l9 9-9 9'/></svg>">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = saved ? saved : (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) { }
+        }());
+    </script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navigation">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <i data-feather="arrow-right" class="logo-icon icon-lg"></i>
+                Flow Composer
+            </a>
+            <ul class="nav-menu">
+                <li><button class="nav-help-btn" onclick="window.helpModalManager.showHelpModal()"><b>Help</b></button>
+                </li>
+                <li><button id="theme-toggle" class="nav-theme-btn" aria-label="Toggle theme">
+                        <i data-feather="sun" class="theme-icon"></i>
+                    </button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="page">
+        <div class="container">
+
+            <!-- Main Sections -->
+            <div class="demo-sections">
+                <section class="demo-section">
+                    <h2>Search & Material Selection</h2>
+                    <p>Search archives for materials, then select them to create custom flows.</p>
+
+                    <div class="search-interface">
+                        <div class="search-form">
+                            <div class="search-header">
+                                <div class="search-scope-toggle">
+                                    <label class="toggle-label">
+                                        <input type="radio" name="search-scope" value="all" checked>
+                                        <span class="toggle-text"><i data-feather="globe" class="icon-md"></i> Entire
+                                            Archive</span>
+                                    </label>
+                                    <label class="toggle-label">
+                                        <input type="radio" name="search-scope" value="filters">
+                                        <span class="toggle-text"><i data-feather="target" class="icon-md"></i> Custom
+                                            Filters</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Custom Filter Management -->
+                            <div class="filter-management" id="filter-management">
+                                <div class="filter-controls">
+                                    <div class="filter-input-group">
+                                        <input type="url" id="filter-url-input"
+                                            placeholder="Enter any username or collection name"
+                                            class="filter-url-input">
+                                        <button id="add-filter-btn" class="btn btn-secondary"
+                                            onclick="filterManager.addFilterFromUI()">
+                                            <i data-feather="plus" class="icon-sm"></i> Add Filter
+                                        </button>
+                                    </div>
+                                    <div class="filter-actions">
+                                        <button id="manage-filters-btn" class="btn btn-outline"
+                                            onclick="filterManager.showFilterManagementModal()">
+                                            Manage Filters
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Active Filter Buttons -->
+                                <div class="active-filters" id="active-filters">
+                                    <div class="active-filters-label">Active Filters:</div>
+                                    <div class="filter-buttons" id="filter-buttons">
+                                        <!-- Dynamic filter buttons will be populated here -->
+                                    </div>
+                                </div>
+                                <div class="filter-actions">
+                                    <button id="clear-active-filters-btn" class="btn btn-outline"
+                                        onclick="filterManager.clearActiveFilters()">
+                                        Clear Active
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="search-form-row">
+                                <input type="text" id="demo-search-query"
+                                    placeholder="Enter search terms for your research topic" value="" />
+                                <button id="search-button" onclick="searchManager.performSearch()">
+                                    <i data-feather="search" class="icon-md"></i>
+                                    Search
+                                </button>
+                            </div>
+                            <div class="search-filters">
+                                <div class="filter-group">
+                                    <label for="demo-search-type">Search Type:</label>
+                                    <select id="demo-search-type">
+                                        <option value="metadata">Metadata Only</option>
+                                        <option value="fulltext">Full Text Content</option>
+                                        <option value="both">Both Metadata & Text</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="demo-document-type">Document Type:</label>
+                                    <select id="demo-document-type">
+                                        <option value="">All Types</option>
+                                        <option value="texts">Texts</option>
+                                        <option value="image">Images</option>
+                                        <option value="audio">Audio</option>
+                                        <option value="movies">Movies/Videos</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="demo-results-per-page">Results per page:</label>
+                                    <select id="demo-results-per-page"
+                                        onchange="searchManager.changeResultsPerPage().catch(console.error)">
+                                        <option value="6">6</option>
+                                        <option value="12">12</option>
+                                        <option value="24">24</option>
+                                        <option value="48">48</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Two-Panel Layout -->
+                    <div class="search-preview-layout">
+                        <!-- Search Results Panel -->
+                        <div class="search-results-panel">
+                            <div id="demo-search-results" class="search-results">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon"><i data-feather="search" class="icon-xl"></i></div>
+                                    <h3>Ready to Search</h3>
+                                    <p id="empty-state-message">Click the search button above to find materials in the
+                                        archive collection.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Panel -->
+                        <div class="preview-panel" id="preview-panel">
+                            <div class="preview-header">
+                                <h3>Archive Material Details</h3>
+                                <button class="preview-close" id="preview-close"
+                                    onclick="if(window.demoApp) window.demoApp.closePreview()" style="display: none;">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="preview-content" id="preview-content">
+                                <div class="preview-placeholder">
+                                    <div class="preview-placeholder-icon"><i data-feather="mouse-pointer"
+                                            class="icon-xl"></i></div>
+                                    <h4>Select an Archival Item</h4>
+                                    <p>Click on any item from the search results to view details.</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Selected Materials Section -->
+                    <div class="selected-materials-section">
+                        <h3>Selected Materials: <span id="selected-materials-count">0</span></h3>
+                        <div id="selected-materials-list" class="selected-materials-grid"></div>
+
+                        <div class="material-actions">
+                            <button id="create-flow-btn" class="btn btn-primary"
+                                onclick="if(window.demoApp) window.demoApp.showFlowCreationModal()" disabled>
+                                Create Flow from Archival Materials
+                            </button>
+
+                            <div class="flow-selection-section">
+                                <select id="add-to-flow-select"
+                                    onchange="if(window.demoApp) window.demoApp.handleFlowSelection(this.value)">
+                                    <option value="">-- Select a Flow --</option>
+                                </select>
+                                <button id="add-to-flow-btn" class="btn btn-primary"
+                                    onclick="if(window.demoApp) window.demoApp.addSelectedMaterialsToFlow()" disabled>
+                                    <i data-feather="plus" class="icon-sm"></i> Add to Flow
+                                </button>
+                            </div>
+
+                            <button class="btn btn-secondary"
+                                onclick="if(window.demoApp) window.demoApp.clearSelectedMaterials().catch(console.error)">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Flow Creation Modal -->
+                <div id="flow-creation-modal" class="modal modal-left">
+                    <div class="modal-content modal-content-left">
+                        <div class="modal-header">
+                            <h2>Create New Flow</h2>
+                            <button class="modal-close"
+                                onclick="if(window.demoApp) window.demoApp.hideFlowCreationModal()">&times;</button>
+                        </div>
+                        <div class="modal-body modal-body-left">
+                            <div class="flow-creation-form">
+                                <div class="form-group">
+                                    <label for="new-flow-name">Flow Name:</label>
+                                    <input type="text" id="new-flow-name"
+                                        placeholder="Enter a descriptive name for your flow" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-flow-description">Description:</label>
+                                    <textarea id="new-flow-description"
+                                        placeholder="Describe the focus and scope of this flow..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                </div>
+                            </div>
+
+                            <div class="materials-assignment">
+                                <h3>Assign Materials to Document Types</h3>
+                                <div class="document-type-coverage">
+                                    <h4>Document Type Coverage</h4>
+                                    <div class="coverage-badges">
+                                        <!-- Coverage indicators will be populated here -->
+                                    </div>
+                                </div>
+                                <div id="materials-assignment-list"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary"
+                                onclick="if(window.demoApp) window.demoApp.hideFlowCreationModal()">Cancel</button>
+                            <button class="btn btn-primary"
+                                onclick="if(window.demoApp) window.demoApp.createNewFlow()">Create Flow</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Created Flows Section -->
+                <section class="demo-section" id="created-flows-section" style="display: none;">
+                    <h2>Created Flows</h2>
+                    <p>Custom flows created from archival materials.</p>
+
+                    <div class="flows-controls">
+                        <div class="flows-search">
+                            <input type="text" id="flows-search-input" placeholder="Search flows..."
+                                onkeyup="if(window.demoApp) window.demoApp.searchFlows(this.value)">
+                        </div>
+                    </div>
+
+                    <div id="created-flows-container" class="created-flows-grid">
+                        <!-- Created flows will be populated here -->
+                    </div>
+
+                    <div class="flows-actions">
+                        <button class="btn btn-secondary" onclick="if(window.demoApp) window.demoApp.exportAllFlows()">
+                            <i data-feather="upload" class="icon-sm"></i> Export All Flows
+                        </button>
+                        <button class="btn btn-secondary" onclick="if(window.demoApp) window.demoApp.importFlows()">
+                            <i data-feather="download" class="icon-sm"></i> Import Flows
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Flow Details Modal -->
+                <div id="flow-details-modal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="flow-details-title">Flow Details</h2>
+                            <button class="modal-close"
+                                onclick="if(window.demoApp) window.demoApp.hideFlowDetailsModal()">&times;</button>
+                        </div>
+                        <div class="modal-body" id="flow-details-content">
+                            <!-- Flow details will be populated here -->
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary"
+                                onclick="if(window.demoApp) window.demoApp.hideFlowDetailsModal()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Flow Composer. A tool for creating and managing flows through archival materials.</p>
+        </div>
+    </footer>
+
+    <!-- Filter Management Modal -->
+    <div id="filter-management-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Search Filters</h2>
+                <button class="modal-close" onclick="filterManager.hideFilterManagementModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="filter-management-content">
+                    <!-- Add New Filter Section -->
+                    <div class="add-filter-section">
+                        <h3>Add New Filter</h3>
+                        <div class="filter-input-group">
+                            <input type="url" id="modal-filter-url-input"
+                                placeholder="Enter any username or collection name" class="filter-url-input">
+                            <button id="modal-add-filter-btn" class="btn btn-primary"
+                                onclick="filterManager.addFilterFromModal()">
+                                <i data-feather="plus" class="icon-sm"></i> Add Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Existing Filters Section -->
+                    <div class="existing-filters-section">
+                        <h3>Your Filters</h3>
+                        <div class="filter-stats" id="filter-stats">
+                            <!-- Filter statistics will be populated here -->
+                        </div>
+                        <div class="filters-list" id="filters-list">
+                            <!-- Filter list will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Import/Export Section -->
+                    <div class="filter-import-export">
+                        <h3>Import/Export Filters</h3>
+                        <div class="import-export-actions">
+                            <button class="btn btn-secondary" onclick="filterManager.exportFiltersToFile()">
+                                <i data-feather="upload" class="icon-sm"></i> Export Filters
+                            </button>
+                            <input type="file" id="import-filters-file" accept=".json" style="display: none;"
+                                onchange="filterManager.importFiltersFromFile(event)">
+                            <button class="btn btn-secondary"
+                                onclick="document.getElementById('import-filters-file').click()">
+                                <i data-feather="download" class="icon-sm"></i> Import Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="filterManager.hideFilterManagementModal()">Close</button>
+                <button class="btn btn-danger" onclick="filterManager.clearAllFilters()">Clear All Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content help-modal-content">
+            <div class="modal-header">
+                <h2><i data-feather="arrow-right" class="icon-lg"></i> Flow Composer Help Guide</h2>
+                <button class="modal-close" onclick="window.helpModalManager.hideHelpModal()">&times;</button>
+            </div>
+            <div class="modal-body help-modal-body">
+                <div class="help-section">
+                    <h3><i data-feather="target" class="icon-lg"></i> What is Flow Composer?</h3>
+                    <p>Flow Composer is a tool for creating and managing flows through archival materials. It allows you
+                        to search archives, explore materials, and create custom "flows" that trace specific themes
+                        through time
+                        and space.</p>
+                </div>
+
+                <div class="help-section">
+                    <h3><i data-feather="search" class="icon-lg"></i> How to Search</h3>
+                    <div class="help-step">
+                        <h4>1. Choose Your Search Scope</h4>
+                        <ul>
+                            <li><strong>Custom Filters:</strong> Search within your saved collections and user profiles
+                            </li>
+                            <li><strong>Entire Archive:</strong> Search across all available materials in the Internet
+                                Archive</li>
+                        </ul>
+                    </div>
+                    <div class="help-step">
+                        <h4>2. Add Custom Filters</h4>
+                        <ul>
+                            <li><strong>Any Name:</strong> Enter any username or collection name</li>
+                            <li><strong>Smart Search:</strong> The system will search for that name as a user,
+                                collection, and creator</li>
+                            <li><strong>Manage Filters:</strong> Use the "Manage Filters" button to view, activate, or
+                                remove saved filters</li>
+                        </ul>
+                    </div>
+                    <div class="help-step">
+                        <h4>3. Enter Search Terms</h4>
+                        <ul>
+                            <li>Try keywords related to your research topic</li>
+                            <li>Combine terms for more specific results</li>
+                            <li>Use relevant terminology for your field of study</li>
+                        </ul>
+                    </div>
+                    <div class="help-step">
+                        <h4>4. Filter Results</h4>
+                        <ul>
+                            <li><strong>Document Type:</strong> Filter by texts, images, audio, or videos</li>
+                            <li><strong>Results per page:</strong> Choose how many items to display (6-48)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3><i data-feather="eye" class="icon-lg"></i> Exploring Materials</h3>
+                    <div class="help-step">
+                        <h4>Viewing Material Details</h4>
+                        <ul>
+                            <li><strong>Click any material card</strong> to view detailed information in the right
+                                panel
+                            </li>
+                            <li>See metadata including title, description, creator, date, and file size</li>
+                            <li>Use pagination controls at top and bottom to navigate through results</li>
+                        </ul>
+                    </div>
+                    <div class="help-step">
+                        <h4>Fullscreen Media Experience</h4>
+                        <ul>
+                            <li><strong> Open Fullscreen:</strong>
+                                Click
+                                "Open Fullscreen" to view media in a larger
+                                window</li>
+                            <li><strong>Fullscreen Modal:</strong> Opens a dedicated fullscreen window for better
+                                viewing</li>
+                            <li><strong>Multiple Media Types:</strong> Supports videos, audio, documents, and images
+                                in
+                                fullscreen</li>
+                            <li><strong>Easy Navigation:</strong> Use the close button (×) or press Escape to exit
+                                fullscreen</li>
+                            <li><strong>Direct Archive Links:</strong> Quick access to view materials on Internet
+                                Archive</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3><i data-feather="plus" class="icon-lg"></i> Selecting Materials</h3>
+                    <div class="help-step">
+                        <h4>Building Your Collection</h4>
+                        <ul>
+                            <li><strong>Click "+ Select"</strong> on any material card to add it to your selection</li>
+                            <li>Selected materials appear in the "Selected Materials" section below</li>
+                            <li>Use "Clear All" to remove all selections and start over</li>
+                            <li>You need at least one material selected to create a flow</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3><i data-feather="arrow-right" class="icon-lg"></i> Creating Flows</h3>
+                    <div class="help-step">
+                        <h4>What are Flows?</h4>
+                        <p>Flows are thematic pathways through archival materials. They organize materials into
+                            standardized document types:</p>
+                        <ol>
+                            <li><strong><i data-feather="camera" class="icon-sm"></i> Photographic
+                                    Documentation</strong> - Visual evidence and imagery</li>
+                            <li><strong><i data-feather="message-circle" class="icon-sm"></i> Conversational
+                                    Documentation</strong> - Oral histories and interviews</li>
+                            <li><strong><i data-feather="alert-triangle" class="icon-sm"></i> Endangered
+                                    Documents</strong> - At-risk materials and ephemera</li>
+                            <li><strong><i data-feather="book" class="icon-sm"></i> Academic Documents</strong> -
+                                Research and scholarly analysis</li>
+                            <li><strong><i data-feather="clipboard" class="icon-sm"></i> Policy Documents</strong> -
+                                Legislation and regulations</li>
+                            <li><strong><i data-feather="dollar-sign" class="icon-sm"></i> Financial Documents</strong>
+                                - Economic and funding information</li>
+                            <li><strong><i data-feather="globe" class="icon-sm"></i> Ephemeral Web Documents</strong> -
+                                Online content and digital media</li>
+                            <li><strong><i data-feather="home" class="icon-sm"></i> Institutional Documents</strong>
+                                - Official records and reports</li>
+                        </ol>
+                    </div>
+                    <div class="help-step">
+                        <h4>Creating Your Flow</h4>
+                        <ul>
+                            <li><strong>Click "Create Flow from Archival Materials"</strong> when you have selected
+                                materials</li>
+                            <li><strong>Name your flow</strong> with a descriptive title</li>
+                            <li><strong>Add a description</strong> explaining the flow's focus</li>
+                            <li><strong>Assign materials to document types</strong> - categorize each material into one
+                                of the 8 standardized types</li>
+                            <li><strong>Reorder materials</strong> by dragging them to create your desired narrative
+                                flow</li>
+                        </ul>
+                    </div>
+                    <div class="help-step">
+                        <h4>Material Organization</h4>
+                        <ul>
+                            <li><strong>Drag Handle:</strong> Use the ⋮⋮ icon to drag materials and reorder them</li>
+                            <li><strong>Document Type Assignment:</strong> Assign each material to one of the 8
+                                standardized document types</li>
+                            <li><strong>Research Notes:</strong> Add specific notes for each material</li>
+                            <li><strong>Coverage Analysis:</strong> See which document types are covered in your flow
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3><i data-feather="clipboard" class="icon-lg"></i> Managing Your Flows</h3>
+                    <div class="help-step">
+                        <h4>Viewing & Editing Flows</h4>
+                        <ul>
+                            <li>Created flows appear in the "Created Flows" section</li>
+                            <li>Click on any flow to view detailed information</li>
+                            <li>Edit flows to modify materials, document types, and order</li>
+                            <li>Search and filter your flows by name or content</li>
+                        </ul>
+                    </div>
+                    <div class="help-step">
+                        <h4>Exporting and Importing</h4>
+                        <ul>
+                            <li><strong>Export flows</strong> to share with colleagues or backup your work</li>
+                            <li><strong>Import flows</strong> from JSON files</li>
+                            <li><strong>Automatic saving</strong> - flows are saved to your browser automatically</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3><i data-feather="globe" class="icon-lg"></i> Additional Resources</h3>
+                    <ul>
+                        <li><a href="https://archive.org" target="_blank">Internet Archive</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="hideHelpModal()">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/config.js?v=7"></script>
+    <script src="js/utils.js?v=7"></script>
+    <script src="js/eventManager.js?v=7"></script>
+    <script src="js/stateManager.js?v=7"></script>
+    <script src="js/filterManager.js?v=7"></script>
+    <script src="js/components.js?v=7"></script>
+    <script src="js/api.js?v=7"></script>
+    <script src="js/search.js?v=7"></script>
+    <script src="js/importExport.js?v=7"></script>
+    <script src="js/modals.js?v=7"></script>
+    <script src="js/dragDrop.js?v=7"></script>
+    <script src="js/mediaManager.js?v=7"></script>
+    <script src="js/materialManager.js?v=7"></script>
+    <script src="js/databaseManager.js?v=7"></script>
+    <script src="js/uiManager.js?v=7"></script>
+    <script src="js/previewManager.js?v=7"></script>
+    <script src="js/renderManager.js?v=7"></script>
+    <script src="js/helpModalManager.js?v=7"></script>
+    <script src="js/app.js?v=7"></script>
+
+    <!-- Initialize Feather Icons -->
+    <script>
+        feather.replace();
+    </script>
+</body>
+
+</html>
