@@ -505,7 +505,7 @@
 
     <!-- JavaScript Files -->
     <script src="../js/toolAuth.js"
-        onerror="console.error('Failed to load toolAuth.js'); window.toolAuthLoadError = true;"></script>
+        onerror="console.error('Failed to load toolAuth.js - check network tab for details'); window.toolAuthLoadError = true; window.toolAuthErrorDetails = 'Script failed to load. Check browser console and network tab.';"></script>
     <script src="../js/configLoader.js"></script>
     <script src="../js/config.js?v=7"></script>
     <script src="../js/utils.js?v=7"></script>
@@ -536,9 +536,14 @@
 
             if (!window.toolAuth) {
                 if (window.toolAuthLoadError) {
-                    errorDiv.textContent = 'Authentication file failed to load. Please check that toolAuth.js exists and the deployment completed successfully.';
+                    errorDiv.textContent = 'Authentication file failed to load. Please check that toolAuth.js exists and the deployment completed successfully. Open browser console (F12) for more details.';
+                    console.error('toolAuth.js failed to load. Possible causes:');
+                    console.error('1. File not found (404) - check Network tab');
+                    console.error('2. JavaScript syntax error in toolAuth.js - check Console tab');
+                    console.error('3. CORS or MIME type issue - check Network tab response headers');
                 } else {
                     errorDiv.textContent = 'Authentication system not loaded. Please refresh the page.';
+                    console.error('window.toolAuth is undefined but no load error detected. This may indicate a JavaScript runtime error.');
                 }
                 errorDiv.style.display = 'block';
                 console.error('toolAuth not available. toolAuthLoadError:', window.toolAuthLoadError);

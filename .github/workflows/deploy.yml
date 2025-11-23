@@ -40,9 +40,10 @@ jobs:
             echo "Warning: TOOL_PASSWORD secret not set. Using default password for build."
             PASSWORD="changeme"
           fi
-          # Escape the password for use in JavaScript string (escape single quotes and backslashes)
+          # Escape the password for use in JavaScript string
+          # Escape backslashes first, then single quotes, then newlines
           # Note: Password will be in the generated JS file, but not in workflow logs due to secret masking
-          ESCAPED_PASSWORD=$(printf '%s' "$PASSWORD" | sed "s/'/\\\\'/g" | sed 's/\\/\\\\/g')
+          ESCAPED_PASSWORD=$(printf '%s' "$PASSWORD" | sed 's/\\/\\\\/g' | sed "s/'/\\\\'/g" | tr -d '\n\r')
           # Generate file - write line by line to avoid heredoc YAML parsing issues
           {
             echo "/**"
@@ -103,16 +104,42 @@ jobs:
             echo "Error: Password placeholder was not replaced!"
             exit 1
           fi
-          # Verify JavaScript syntax using node (without exposing file contents)
-          if ! node -c js/toolAuth.js >/dev/null 2>&1; then
+          # Verify the password constant is not empty
+          if grep -q "const TOOL_PASSWORD = '';" js/toolAuth.js; then
+            echo "Error: TOOL_PASSWORD is empty!"
+            exit 1
+          fi
+          # Verify JavaScript syntax using node (capture errors but don't show file contents)
+          SYNTAX_CHECK=$(node -c js/toolAuth.js 2>&1)
+          SYNTAX_EXIT=$?
+          if [ $SYNTAX_EXIT -ne 0 ]; then
             echo "Error: toolAuth.js has invalid JavaScript syntax!"
-            echo "Checking file structure (password not shown)..."
-            # Only show structure, not content
+            echo "Syntax error details (password masked):"
+            # Show error but mask any password that might appear in error messages
+            echo "$SYNTAX_CHECK" | sed "s/'[^']*'/'***MASKED***'/g" | sed 's/[0-9a-zA-Z]\{8,\}/***MASKED***/g'
+            echo "File structure check:"
             wc -l js/toolAuth.js
             head -n 1 js/toolAuth.js | grep -q "/\*\*" && echo "File header present" || echo "File header missing"
+            # Check if password line exists and is valid
+            grep "const TOOL_PASSWORD" js/toolAuth.js | head -c 50
+            echo "... (truncated for security)"
+            exit 1
+          fi
+          # Verify window.toolAuth export exists in the file
+          if ! grep -q "window.toolAuth" js/toolAuth.js; then
+            echo "Error: toolAuth.js is missing window.toolAuth assignment!"
+            exit 1
+          fi
+          # Verify all required functions are present
+          if ! grep -q "function isAuthenticated" js/toolAuth.js || ! grep -q "function authenticate" js/toolAuth.js || ! grep -q "function logout" js/toolAuth.js; then
+            echo "Error: toolAuth.js is missing required functions!"
             exit 1
           fi
           echo "JavaScript syntax validation passed"
+          echo "File structure verified: all required functions and exports present"
+          # List the file to confirm it exists (without showing contents)
+          ls -lh js/toolAuth.js
+          echo "File size and permissions verified"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
