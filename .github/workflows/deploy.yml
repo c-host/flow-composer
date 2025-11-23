@@ -95,6 +95,23 @@ jobs:
             echo "Error: toolAuth.js is missing TOOL_PASSWORD constant!"
             exit 1
           fi
+          # Verify JavaScript syntax using node
+          if node -c js/toolAuth.js 2>&1; then
+            echo "JavaScript syntax is valid"
+          else
+            echo "Error: toolAuth.js has invalid JavaScript syntax!"
+            cat js/toolAuth.js
+            exit 1
+          fi
+          # Verify window.toolAuth will be set
+          if ! grep -q "window.toolAuth" js/toolAuth.js; then
+            echo "Error: toolAuth.js is missing window.toolAuth assignment!"
+            exit 1
+          fi
+          echo "toolAuth.js validation passed"
+          # Show first few lines for debugging (password will be visible in logs but that's okay for debugging)
+          echo "Generated file preview (first 10 lines):"
+          head -n 10 js/toolAuth.js
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
