@@ -564,7 +564,20 @@ const Utils = {
          * @returns {string|null} - Thumbnail URL or null
          */
         getThumbnailUrl(material) {
-            return material.thumbnail || null;
+            // If thumbnail is already provided, use it
+            if (material.thumbnail) {
+                return material.thumbnail;
+            }
+
+            // Otherwise, construct thumbnail URL from identifier
+            // Format: https://ia800305.us.archive.org/0/items/{identifier}/__ia_thumb.jpg
+            if (material.identifier) {
+                // Extract server number from identifier hash or use default
+                // For now, use a common server pattern
+                return `https://archive.org/services/img/${material.identifier}`;
+            }
+
+            return null;
         },
 
         /**
@@ -699,7 +712,6 @@ const Utils = {
                 if (window.demoApp.editingFlow) {
                     const flowMaterial = window.demoApp.editingFlow.materials.find(m => m.identifier === identifier);
                     if (flowMaterial && flowMaterial.documentType) {
-                        // Debug logging removed
                         return flowMaterial.documentType;
                     }
                 }
@@ -709,11 +721,9 @@ const Utils = {
                 if (window.demoApp.editingFlow) {
                     const item = document.querySelector(`[data-identifier="${identifier}"] .material-doc-type`);
                     const result = item ? item.value : 'policy';
-                    // Debug logging removed
                     return result;
                 } else {
                     // For new flows, always return default
-                    // Debug logging removed
                     return 'policy';
                 }
             }
@@ -968,7 +978,6 @@ const Utils = {
          * @param {Object} options - Additional options
          */
         show(message, type = 'info', options = {}) {
-            // Debug logging removed
 
             const {
                 duration = 5000,
@@ -981,28 +990,24 @@ const Utils = {
             notificationContainer.innerHTML = window.renderManager.createNotificationHTML(message, type);
             const notification = notificationContainer.firstElementChild;
 
-            // Debug logging removed
 
             // Add to page with batched DOM update to prevent forced reflows
             requestAnimationFrame(() => {
                 document.body.appendChild(notification);
             });
 
-            // Debug logging removed
 
             // Ensure notification is fully visible
             this.ensureNotificationVisibility(notification);
 
             // Show with animation
             setTimeout(() => {
-                // Debug logging removed
                 notification.classList.add('show');
             }, 10);
 
             // Auto-close if enabled
             if (autoClose) {
                 setTimeout(() => {
-                    // Debug logging removed
                     this.hide(notification);
                 }, duration);
             }
@@ -1015,20 +1020,17 @@ const Utils = {
          * @param {HTMLElement} notification - Notification element
          */
         ensureNotificationVisibility(notification) {
-            // Debug logging removed
 
             // Get viewport dimensions
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            // Debug logging removed
 
             // Get notification dimensions
             const rect = notification.getBoundingClientRect();
             const notificationWidth = rect.width;
             const notificationHeight = rect.height;
 
-            // Debug logging removed
 
             // Check if notification would be cut off
             const rightOverflow = rect.right > viewportWidth;
@@ -1036,37 +1038,30 @@ const Utils = {
             const topOverflow = rect.top < 0;
             const bottomOverflow = rect.bottom > viewportHeight;
 
-            // Debug logging removed
 
-            // Debug logging removed
 
             // Adjust position if needed
             if (rightOverflow) {
-                // Debug logging removed
                 notification.style.right = '10px';
                 notification.style.left = 'auto';
             }
 
             if (leftOverflow) {
-                // Debug logging removed
                 notification.style.left = '10px';
                 notification.style.right = 'auto';
             }
 
             if (topOverflow) {
-                // Debug logging removed
                 notification.style.top = '10px';
             }
 
             if (bottomOverflow) {
-                // Debug logging removed
                 notification.style.top = `${viewportHeight - notificationHeight - 10}px`;
             }
 
             // Re-check after adjustments
             setTimeout(() => {
                 const newRect = notification.getBoundingClientRect();
-                // Debug logging removed
             }, 100);
         },
 
@@ -1138,57 +1133,104 @@ const Utils = {
      */
     DocumentType: {
         /**
-         * Get unique document types with descriptions
-         * @returns {Array} Array of document type objects with name and description
+         * Get document types from config, including imported types
+         * @returns {Array} Array of document type objects with id, label, description, icon, and source
          */
         getUniqueTypes() {
-            const documentTypes = [
-                'photographic', 'conversational', 'endangered', 'academic',
-                'policy', 'financial', 'ephemeral', 'institutional'
-            ];
+            const configTypes = [];
+            const importedTypes = [];
 
-            return documentTypes.map(type => ({
-                name: type,
-                description: this.getDescription(type)
-            }));
+            // Get native types from config
+            if (window.PROJECT_CONFIG && window.PROJECT_CONFIG.documentTypes) {
+                window.PROJECT_CONFIG.documentTypes.forEach(type => {
+                    configTypes.push({
+                        id: type.id,
+                        name: type.id, // For backward compatibility
+                        label: type.label,
+                        description: type.description,
+                        icon: type.icon,
+                        source: 'native'
+                    });
+                });
+            }
+
+            // Get imported types from flows (stored in window.importedDocumentTypes)
+            if (window.importedDocumentTypes && Array.isArray(window.importedDocumentTypes)) {
+                window.importedDocumentTypes.forEach(type => {
+                    // Only add if not already in config types
+                    if (!configTypes.find(t => t.id === type.id)) {
+                        importedTypes.push({
+                            id: type.id,
+                            name: type.id, // For backward compatibility
+                            label: type.label || type.name || type.id,
+                            description: type.description || 'Document',
+                            icon: type.icon || 'file-text',
+                            source: 'imported'
+                        });
+                    }
+                });
+            }
+
+            return [...configTypes, ...importedTypes];
         },
 
         /**
          * Get document type description
-         * @param {string} type - Document type
+         * @param {string} type - Document type ID
          * @returns {string} Description of the document type
          */
         getDescription(type) {
-            const descriptions = {
-                'photographic': 'Photographic documentation of physical objects, scenes, or events.',
-                'conversational': 'Documentation of conversations, interviews, or meetings.',
-                'endangered': 'Materials that are at risk of being lost, destroyed, or degraded.',
-                'academic': 'Research reports, academic papers, and scholarly materials.',
-                'policy': 'Official policies, regulations, and legal documents.',
-                'financial': 'Financial records, budgets, and accounting documents.',
-                'ephemeral': 'Web-based materials that are transient or have a limited lifespan.',
-                'institutional': 'Documents produced by government bodies, corporations, or other formal institutions.'
-            };
-            return descriptions[type] || 'Document';
+            const allTypes = this.getUniqueTypes();
+            const docType = allTypes.find(t => t.id === type || t.name === type);
+            return docType ? docType.description : 'Document';
+        },
+
+        /**
+         * Get document type label
+         * @param {string} type - Document type ID
+         * @returns {string} Label of the document type
+         */
+        getLabel(type) {
+            const allTypes = this.getUniqueTypes();
+            const docType = allTypes.find(t => t.id === type || t.name === type);
+            return docType ? docType.label : type;
         },
 
         /**
          * Get document type icon
-         * @param {string} documentType - Document type
+         * @param {string} documentType - Document type ID
          * @returns {string} Icon HTML for the document type
          */
         getIcon(documentType) {
-            const icons = {
-                'photographic': '<i data-feather="camera" class="icon-sm"></i>',
-                'conversational': '<i data-feather="message-circle" class="icon-sm"></i>',
-                'endangered': '<i data-feather="alert-triangle" class="icon-sm"></i>',
-                'academic': '<i data-feather="book" class="icon-sm"></i>',
-                'policy': '<i data-feather="clipboard" class="icon-sm"></i>',
-                'financial': '<i data-feather="dollar-sign" class="icon-sm"></i>',
-                'ephemeral': '<i data-feather="globe" class="icon-sm"></i>',
-                'institutional': '<i data-feather="home" class="icon-sm"></i>'
-            };
-            return icons[documentType] || '<i data-feather="file-text" class="icon-sm"></i>';
+            const allTypes = this.getUniqueTypes();
+            const docType = allTypes.find(t => t.id === documentType || t.name === documentType);
+            const iconName = docType ? docType.icon : 'file-text';
+            return `<i data-feather="${iconName}" class="icon-sm"></i>`;
+        },
+
+        /**
+         * Register imported document types from a flow
+         * @param {Array} documentTypes - Array of document type definitions from imported flow
+         */
+        registerImportedTypes(documentTypes) {
+            if (!window.importedDocumentTypes) {
+                window.importedDocumentTypes = [];
+            }
+
+            if (Array.isArray(documentTypes)) {
+                documentTypes.forEach(type => {
+                    // Only add if not already registered
+                    const exists = window.importedDocumentTypes.find(t => t.id === type.id);
+                    if (!exists) {
+                        window.importedDocumentTypes.push({
+                            id: type.id,
+                            label: type.label || type.name || type.id,
+                            description: type.description || 'Document',
+                            icon: type.icon || 'file-text'
+                        });
+                    }
+                });
+            }
         }
     },
 

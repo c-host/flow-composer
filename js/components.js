@@ -83,8 +83,11 @@ class SearchComponent extends Component {
     }
 
     get defaultOptions() {
+        // Get placeholder from search scopes, with fallback
+        const scopes = CONFIG.SEARCH_SCOPES;
+        const placeholder = (scopes.COLLECTION && scopes.COLLECTION.placeholder) || 'Enter search terms for your research topic';
         return {
-            placeholder: CONFIG.SEARCH_SCOPES.FILTERS.placeholder,
+            placeholder: placeholder,
             debounceDelay: 300
         };
     }
@@ -119,8 +122,7 @@ class SearchComponent extends Component {
     async performSearch() {
         const query = Utils.DOM.getElement(CONFIG.SELECTORS.SEARCH_QUERY)?.value || '';
         const documentType = Utils.DOM.getElement('#demo-document-type')?.value || '';
-        const searchType = Utils.DOM.getElement('#demo-search-type')?.value || 'metadata';
-        const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || CONFIG.SEARCH.DEFAULT_SCOPE;
+        const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'all';
 
         if (Utils.Validation.isEmpty(query.trim())) {
             this.showNotification(CONFIG.ERRORS.INVALID_INPUT, CONFIG.CLASSES.ERROR);
@@ -140,7 +142,7 @@ class SearchComponent extends Component {
             }
 
             const { result: results, duration } = await Utils.Performance.measureTime(
-                () => internetArchiveAPI.search(query, { documentType, searchType, searchScope }),
+                () => internetArchiveAPI.search(query, { documentType, searchScope }),
                 'Search'
             );
 
@@ -162,18 +164,19 @@ class SearchComponent extends Component {
     }
 
     updateSearchScope() {
-        const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || CONFIG.SEARCH.DEFAULT_SCOPE;
-        const scopeConfig = searchScope === 'filters' ? CONFIG.SEARCH_SCOPES.FILTERS : CONFIG.SEARCH_SCOPES.ALL;
+        const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'all';
+        const projectConfig = window.PROJECT_CONFIG || {};
+        const collectionName = projectConfig.projectName || 'Collection';
+        const scopeConfig = searchScope === 'collection' ?
+            { description: `Searching the ${collectionName} collection`, placeholder: 'Search for materials...', emptyMessage: `Enter search terms to find materials in the ${collectionName} collection.` } :
+            { description: 'Searching the entire Internet Archive', placeholder: 'Search for materials...', emptyMessage: 'Enter search terms to find materials across the entire Internet Archive.' };
 
         const searchNote = Utils.DOM.getElement('#search-note');
         const searchInput = Utils.DOM.getElement(CONFIG.SELECTORS.SEARCH_QUERY);
         const emptyStateMessage = Utils.DOM.getElement('#empty-state-message');
 
         if (searchNote) {
-            const linkHTML = scopeConfig.url ?
-                `<a href="${scopeConfig.url}" target="_blank">${scopeConfig.description}</a>` :
-                scopeConfig.description;
-            Utils.DOM.setHTML(searchNote, `<i data-feather="search" class="icon-sm"></i> ${linkHTML}`);
+            Utils.DOM.setHTML(searchNote, `<i data-feather="search" class="icon-sm"></i> ${scopeConfig.description}`);
         }
 
         if (searchInput) {
@@ -321,24 +324,51 @@ class MaterialCardComponent extends Component {
         // Generate action buttons based on context
         const actionButtons = this.generateActionButtons(hasPlayableMedia, playableMediaType, hasDocumentViewer);
 
+        // Get thumbnail URL - try multiple patterns
+        let thumbnailUrl = null;
+        if (material.thumbnail) {
+            thumbnailUrl = material.thumbnail;
+        } else if (material.identifier) {
+            // Try standard Internet Archive thumbnail service first
+            thumbnailUrl = `https://archive.org/services/img/${material.identifier}`;
+        }
+
         Utils.DOM.setHTML(this.element, `
             <div class="material-card ${isSelected ? 'selected' : ''}" data-identifier="${material.identifier}" onclick="demoApp.previewMaterial('${material.identifier}')" style="cursor: pointer;">
                 <div class="material-content">
+                    ${thumbnailUrl ? `
+                        <div class="material-thumbnail">
+                            <img src="${Utils.String.escapeHTML(thumbnailUrl)}" alt="${Utils.String.escapeHTML(material.title)}" onerror="this.style.display='none'">
+                        </div>
+                    ` : ''}
                     <h3>${Utils.String.escapeHTML(material.title)}</h3>
                     <p>${Utils.String.truncate(Utils.String.escapeHTML(material.description || 'No description available'), 100)}</p>
                     
-                    <div class="material-meta">
-                        <span><i data-feather="user" class="icon-sm"></i> ${Utils.String.escapeHTML(material.creator)}</span>
-                        <span><i data-feather="calendar" class="icon-sm"></i> ${formattedDate}</span>
-                        ${formattedSize ? `<span><i data-feather="hard-drive" class="icon-sm"></i> ${formattedSize}</span>` : ''}
-                        <span>${icon} ${material.type}</span>
-                    </div>
-                    
-                    ${this.showActions ? `
-                        <div class="material-actions">
-                            ${actionButtons}
+                    ${this.context === 'search' ? `
+                        <div class="material-meta-actions-row">
+                            <span class="material-type-badge">${icon} ${material.type}</span>
+                            ${this.showActions ? `
+                                <div class="material-actions">
+                                    ${actionButtons}
+                                </div>
+                            ` : ''}
                         </div>
-                    ` : ''}
+                    ` : `
+                        <div class="material-meta">
+                            <span><i data-feather="user" class="icon-sm"></i> ${Utils.String.escapeHTML(material.creator)}</span>
+                            ${material.uploader ? `
+                                <span><i data-feather="upload" class="icon-sm"></i> Uploaded by: ${Utils.String.escapeHTML(material.uploader)}</span>
+                            ` : ''}
+                            <span><i data-feather="calendar" class="icon-sm"></i> ${formattedDate}</span>
+                            ${formattedSize ? `<span><i data-feather="hard-drive" class="icon-sm"></i> ${formattedSize}</span>` : ''}
+                            <span>${icon} ${material.type}</span>
+                        </div>
+                        ${this.showActions ? `
+                            <div class="material-actions">
+                                ${actionButtons}
+                            </div>
+                        ` : ''}
+                    `}
                 </div>
             </div>
         `);

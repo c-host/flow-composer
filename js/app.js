@@ -31,11 +31,6 @@ class DemoApp {
         this.updateDisplay();
         this.ui.init();
 
-        // Initialize filter manager UI if available
-        if (window.filterManager && window.filterManager.initUI) {
-            window.filterManager.initUI();
-        }
-
         // Setup placeholder protection against browser extension interference
         this.setupPlaceholderProtection();
     }
@@ -695,17 +690,24 @@ class DemoApp {
 
         if (!name) {
             this.showNotification('Please enter a flow name', 'error');
+            this.isCreatingFlow = false;
             return;
         }
 
         if (this.materials.getSelectedMaterials().length === 0) {
             this.showNotification('Please select at least one material', 'error');
+            this.isCreatingFlow = false;
             return;
         }
 
         try {
+            // Sync all Quill editors to flow objects before saving
+            // This ensures all content is captured even if Quill instances are in a bad state
+            if (this.materials && typeof this.materials.syncAllQuillEditorsToFlow === 'function') {
+                this.materials.syncAllQuillEditorsToFlow();
+            }
+
             const selectedMaterials = this.materials.getSelectedMaterials();
-            // Debug logging removed
 
             // Create flow object with complete material data
             const newFlow = {
@@ -799,7 +801,20 @@ class DemoApp {
      * Get unique document types from assigned materials
      */
     getUniqueDocumentTypes() {
-        return Utils.DocumentType.getUniqueTypes();
+        if (window.Utils && window.Utils.DocumentType && window.Utils.DocumentType.getUniqueTypes) {
+            return window.Utils.DocumentType.getUniqueTypes();
+        }
+        // Fallback to default types
+        return [
+            { id: 'photographic', name: 'photographic', label: 'Photographic Documentation', description: 'Photographic documentation' },
+            { id: 'conversational', name: 'conversational', label: 'Conversational Documentation', description: 'Conversations and interviews' },
+            { id: 'endangered', name: 'endangered', label: 'Endangered Documents', description: 'Endangered materials' },
+            { id: 'academic', name: 'academic', label: 'Academic Documents', description: 'Academic research' },
+            { id: 'policy', name: 'policy', label: 'Policy Documents', description: 'Policy documents' },
+            { id: 'financial', name: 'financial', label: 'Financial Documents', description: 'Financial records' },
+            { id: 'ephemeral', name: 'ephemeral', label: 'Ephemeral Web Documents', description: 'Ephemeral materials' },
+            { id: 'institutional', name: 'institutional', label: 'Institutional Documents', description: 'Institutional documents' }
+        ];
     }
 
     /**
@@ -837,12 +852,51 @@ class DemoApp {
             window.stateManager.set('createdFlows', [...this.createdFlows]);
         }
 
+        // Always show the section
+        section.style.display = 'block';
+
+        // Get the flows controls (search input)
+        const flowsControls = document.querySelector('.flows-controls');
+        const searchInput = document.getElementById('flows-search-input');
+
         if (this.createdFlows.length === 0) {
-            section.style.display = 'none';
+            // Hide search input when there are no flows
+            if (flowsControls) {
+                flowsControls.style.display = 'none';
+            }
+            // Clear search input to prevent stale state
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            // Show empty state message
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i data-feather="layers" class="icon-xl"></i></div>
+                    <h3>No Flows Created Yet</h3>
+                    <p>To get started, you can either create a new flow from selected archival materials or import an existing flow.</p>
+                    <p style="margin-top: var(--spacing-4);">
+                        <strong>Create a flow:</strong> Select materials from the search results above and click "Create Flow from Archival Materials".<br>
+                        <strong>Import a flow:</strong> Use the "Import Flows" button below to load flows from a JSON file.
+                    </p>
+                </div>
+            `;
+
+            // Replace Feather icons in the empty state
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+
+            // Update flow selection dropdown (will be empty)
+            this.updateFlowSelectionDropdown();
             return;
         }
 
-        section.style.display = 'block';
+        // Show search input when there are flows
+        if (flowsControls) {
+            flowsControls.style.display = 'block';
+        }
+
         container.innerHTML = this.createdFlows.map(flow => this.render.renderCreatedFlowCard(flow)).join('');
 
         // Replace Feather icons in the created flows
@@ -896,10 +950,9 @@ class DemoApp {
     editFlow(flowId) {
         const flow = this.createdFlows.find(f => f.id === flowId);
         if (!flow) {
-            console.error('❌ Flow not found:', flowId);
+            console.error('Flow not found:', flowId);
             return;
         }
-
 
         // Close flow details modal if open
         this.hideFlowDetailsModal();
@@ -918,26 +971,47 @@ class DemoApp {
      * Populate flow edit form with existing data
      */
     populateFlowEditForm(flow) {
-        // Debug logging removed
-
         document.getElementById('new-flow-name').value = flow.name || '';
         document.getElementById('new-flow-description').value = flow.description || '';
 
         // Set selected materials to the flow's materials (remove duplicates)
+        // IMPORTANT: Preserve all properties including notes, documentType, order, etc.
         const uniqueMaterials = [];
         const seenIdentifiers = new Set();
 
         for (const material of flow.materials) {
             if (!seenIdentifiers.has(material.identifier)) {
                 seenIdentifiers.add(material.identifier);
-                uniqueMaterials.push(material);
+                // Create a copy of the material with all its properties preserved
+                // This ensures notes, documentType, and other flow-specific data are maintained
+                const materialCopy = { ...material };
+
+                // Explicitly preserve notes - only set default if notes is undefined/null, not if it's empty string
+                if (material.notes !== undefined && material.notes !== null) {
+                    materialCopy.notes = material.notes;
+                } else {
+                    materialCopy.notes = '';
+                }
+
+                // Preserve documentType with default
+                materialCopy.documentType = material.documentType || 'policy';
+
+                // Preserve order
+                materialCopy.order = material.order !== undefined ? material.order : uniqueMaterials.length;
+
+                uniqueMaterials.push(materialCopy);
             } else {
                 console.warn('Duplicate material found in flow:', material.identifier, material.title);
             }
         }
 
+        // Set selected materials
         this.materials.setSelectedMaterials(uniqueMaterials);
-        // Debug logging removed
+
+        // Create draft state from the flow (this becomes the source of truth during editing)
+        if (this.materials && typeof this.materials.createDraft === 'function') {
+            this.materials.createDraft(flow);
+        }
     }
 
     /**
@@ -961,21 +1035,42 @@ class DemoApp {
 
         if (!name) {
             this.showNotification('Please enter a flow name', 'error');
+            this.isSavingFlow = false;
             return;
         }
 
         if (this.materials.getSelectedMaterials().length === 0) {
             this.showNotification('Please select at least one material', 'error');
+            this.isSavingFlow = false;
             return;
         }
 
         try {
-            const selectedMaterials = this.materials.getSelectedMaterials();
-            // Debug logging removed
+            // Sync all Quill editors to draft state before saving
+            // This ensures all content is captured even if Quill instances are in a bad state
+            if (this.materials && typeof this.materials.syncAllQuillEditorsToFlow === 'function') {
+                this.materials.syncAllQuillEditorsToFlow();
+            }
 
-            // Update the existing flow
-            const updatedFlow = {
-                ...this.editingFlow,
+            // Also sync document types to draft state
+            const selectedMaterials = this.materials.getSelectedMaterials();
+            selectedMaterials.forEach((material, index) => {
+                const docType = this.getCurrentMaterialDocumentType(material.identifier);
+                if (this.materials && typeof this.materials.setDraft === 'function') {
+                    this.materials.setDraft(material.identifier, 'documentType', docType);
+                    this.materials.setDraft(material.identifier, 'order', index);
+                }
+            });
+
+            // Apply draft state to the flow object
+            let updatedFlow = this.editingFlow;
+            if (this.materials && typeof this.materials.applyDraft === 'function') {
+                updatedFlow = this.materials.applyDraft(this.editingFlow);
+            }
+
+            // Update flow metadata
+            updatedFlow = {
+                ...updatedFlow,
                 name,
                 description,
                 materials: selectedMaterials.map((material, index) => ({
@@ -996,8 +1091,11 @@ class DemoApp {
                 this.createdFlows[index] = updatedFlow;
             }
 
-            // Clear editing state
+            // Clear editing state and draft
             this.editingFlow = null;
+            if (this.materials && typeof this.materials.clearDraft === 'function') {
+                this.materials.clearDraft();
+            }
             await this.materials.clearSelectedMaterials();
 
             // Hide modal
@@ -1018,6 +1116,29 @@ class DemoApp {
         } finally {
             // Always reset the flag
             this.isSavingFlow = false;
+        }
+    }
+
+    /**
+     * Cancel flow editing and restore original state
+     */
+    cancelFlowEdit() {
+        // Clear selected materials - user canceled, so they don't want flow materials in selection
+        if (this.materials && typeof this.materials.clearSelectedMaterials === 'function') {
+            this.materials.clearSelectedMaterials().catch(console.error);
+        }
+
+        // Clear draft state
+        if (this.materials && typeof this.materials.clearDraft === 'function') {
+            this.materials.clearDraft();
+        }
+
+        // Clear editing state
+        this.editingFlow = null;
+
+        // Clean up Quill editors
+        if (this.materials && typeof this.materials.cleanupQuillEditors === 'function') {
+            this.materials.cleanupQuillEditors();
         }
     }
 
@@ -1157,6 +1278,11 @@ class DemoApp {
     searchFlows(query) {
         const container = document.getElementById('created-flows-container');
         if (!container) return;
+
+        // If there are no flows, don't perform search
+        if (this.createdFlows.length === 0) {
+            return;
+        }
 
         const searchTerm = query.toLowerCase().trim();
         const flowsToShow = this.createdFlows.filter(flow => {
@@ -1341,6 +1467,7 @@ class DemoApp {
         return this.materials.selectMaterialInNarrative(materialId);
     }
 
+
     /**
      * Get truncated description with consistent length
      */
@@ -1378,16 +1505,49 @@ class DemoApp {
     }
 
     /**
- * Generate HTML for flow selection section
- */
+     * Toggle flow details description expand/collapse for a specific material item
+     */
+    toggleFlowDetailsDescription(identifier) {
+        const materialItem = document.querySelector(`[data-material-id="${identifier}"]`);
+        if (!materialItem) return;
+
+        const descriptionContainer = materialItem.querySelector('.material-description');
+        if (!descriptionContainer) return;
+
+        const truncatedText = descriptionContainer.querySelector('.description-text.truncated');
+        const fullText = descriptionContainer.querySelector('.description-text.full');
+        const toggleButtons = descriptionContainer.querySelectorAll('.description-toggle');
+        const showMoreBtn = toggleButtons[0];
+        const showLessBtn = toggleButtons[1];
+
+        if (truncatedText && fullText && showMoreBtn && showLessBtn) {
+            if (truncatedText.style.display !== 'none') {
+                // Show full description
+                truncatedText.style.display = 'none';
+                fullText.style.display = 'block';
+                showMoreBtn.style.display = 'none';
+                showLessBtn.style.display = 'inline-block';
+            } else {
+                // Show truncated description
+                truncatedText.style.display = 'block';
+                fullText.style.display = 'none';
+                showMoreBtn.style.display = 'inline-block';
+                showLessBtn.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+    * Generate HTML for flow selection section
+    */
     getFlowSelectionHTML() {
         // Flow selection is now handled in the main HTML between buttons
         return '';
     }
 
     /**
- * Update flow selection state (enable/disable button)
- */
+    * Update flow selection state (enable/disable button)
+    */
     updateFlowSelectionState() {
         const addButton = document.getElementById('add-to-flow-btn');
         const selectElement = document.getElementById('add-to-flow-select');

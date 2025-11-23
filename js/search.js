@@ -2,13 +2,17 @@
 class SearchManager {
   constructor() {
     this.currentResults = [];
+    this.allResults = []; // Store all results for client-side filtering
+    this.filteredResults = []; // Store filtered results
+    this.isFiltering = false; // Track if currently filtering
     this.isLoading = false;
     this.currentPage = 1; // Added for pagination
-    this.resultsPerPage = 6; // Default results per page
+    this.resultsPerPage = 4; // Default results per page
     this.searchScope = 'all'; // Default search scope
     this.totalResults = 0; // Total results count
     this.currentSearchQuery = ''; // Current search query
     this.currentSearchFilters = {}; // Current search filters
+    this.isBrowsingAllItems = false; // Track if browsing all items mode
   }
 
   renderSearch() {
@@ -96,7 +100,7 @@ class SearchManager {
     }
 
     // Add filter change listeners
-    const filters = ['demo-document-type', 'demo-search-type'];
+    const filters = ['demo-document-type'];
     filters.forEach(filterId => {
       const element = document.getElementById(filterId);
       if (element) {
@@ -119,23 +123,75 @@ class SearchManager {
       return;
     }
 
+    // Reset browse mode when performing a regular search
+    this.isBrowsingAllItems = false;
+
+    // Reset to page 1 for new searches (not pagination)
+    if (!isPagination) {
+      this.currentPage = 1;
+    }
+
     this.isLoading = true;
     this.showLoading(isPagination);
 
     try {
       const filters = this.getFilters();
-      const resultsPerPage = parseInt(document.getElementById('demo-results-per-page')?.value || '6');
+      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+
+      // Get document type filter but don't pass it to API - apply client-side instead
+      const documentTypeFilter = filters.documentType;
+      const apiFilters = { ...filters };
+      delete apiFilters.documentType; // Remove from API filters
 
       const results = await window.internetArchiveAPI.search(query, {
-        ...filters,
+        ...apiFilters,
         resultsPerPage: resultsPerPage,
         page: this.currentPage || 1
       });
 
-      this.currentResults = results;
+      // Store all results from API for client-side filtering
+      // The API stores all results in allSearchResults before paginating
+      const allResults = window.internetArchiveAPI ? window.internetArchiveAPI.getAllSearchResults() : [];
 
-      // Update total results count from API for pagination
-      this.totalResults = window.internetArchiveAPI ? window.internetArchiveAPI.getTotalResultsCount() : results.length;
+      // Store all results for client-side filtering
+      if (allResults && allResults.length > 0) {
+        this.allResults = allResults;
+
+        // Apply document type filter client-side if one is set
+        // Use documentTypeFilter from getFilters() or currentSearchFilters
+        const documentType = documentTypeFilter || this.currentSearchFilters.documentType;
+        if (documentType) {
+          this.currentSearchFilters.documentType = documentType;
+          this.filteredResults = allResults.filter(item => item.type === documentType);
+
+          this.isFiltering = true;
+          this.totalResults = this.filteredResults.length;
+
+          // Get paginated results from filtered set
+          const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+          const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+          const startIndex = (this.currentPage - 1) * resultsPerPage;
+          const endIndex = startIndex + resultsPerPage;
+          this.currentResults = this.filteredResults.slice(startIndex, endIndex);
+        } else {
+          // No filter - show all results
+          this.currentSearchFilters.documentType = '';
+          this.filteredResults = allResults;
+          this.isFiltering = false;
+          this.totalResults = allResults.length;
+          this.currentResults = results; // Use paginated results from API
+        }
+      } else {
+        // Fallback: if getAllSearchResults is empty, store current results
+        // This shouldn't happen normally, but handle it gracefully
+        console.warn('[SearchManager] getAllSearchResults returned empty, using current page results');
+        this.allResults = results;
+        this.filteredResults = results;
+        this.isFiltering = false;
+        this.currentResults = results;
+        this.totalResults = window.internetArchiveAPI ? window.internetArchiveAPI.getTotalResultsCount() : results.length;
+      }
 
       this.displayResults(results);
 
@@ -149,12 +205,11 @@ class SearchManager {
   }
 
   getFilters() {
-    const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'filters';
+    const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'all';
 
     return {
       query: document.getElementById('demo-search-query')?.value || '',
       documentType: document.getElementById('demo-document-type')?.value || '',
-      searchType: document.getElementById('demo-search-type')?.value || 'metadata',
       searchScope: searchScope
     };
   }
@@ -186,7 +241,10 @@ class SearchManager {
 
   async displayResults(results) {
     const container = document.getElementById('demo-search-results');
-    if (!container) return;
+    if (!container) {
+      console.warn('[SearchManager] displayResults: Container not found');
+      return;
+    }
 
     if (results.length === 0) {
       container.innerHTML = `
@@ -225,17 +283,16 @@ class SearchManager {
       typeof item.title === 'string'
     );
 
-
     // Use the existing renderSearchResults method that includes pagination controls
     if (window.renderManager && window.renderManager.renderSearchResults) {
       container.innerHTML = await window.renderManager.renderSearchResults(finalValidResults);
     } else {
-      console.error('Search: renderManager or renderSearchResults not available');
+      console.error('[SearchManager] displayResults: renderManager or renderSearchResults not available');
       // Fallback to basic display without pagination
       container.innerHTML = `
         <div class="search-results-header">
           <h3>Found ${finalValidResults.length} results</h3>
-          <p>Showing materials from the Internet Archive related to your search.</p>
+          <p>Showing materials from the Internet Archive related to your search. Select materials to create flows from them.</p>
         </div>
         <div class="results-grid">
           <div class="error">Error: Render manager not available</div>
@@ -338,6 +395,23 @@ class SearchManager {
           <p>${message}</p>
         </div>
       `;
+    }
+  }
+
+  showNoResultsMessage(message) {
+    const container = document.getElementById('demo-search-results');
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><i data-feather="filter" class="icon-xl"></i></div>
+          <h3>No Results Found</h3>
+          <p>${message}</p>
+        </div>
+      `;
+      // Replace Feather icons
+      if (typeof feather !== 'undefined') {
+        feather.replace();
+      }
     }
   }
 
@@ -570,7 +644,7 @@ class SearchManager {
                 <p>Loading item preview...</p>
               </div>
               <iframe 
-                src="https://archive.org/embed/${identifier}" 
+                src="https://archive.org/embed/${identifier}?ui=embed&wrapper=false" 
                 width="100%" 
                 height="100%" 
                 frameborder="0" 
@@ -578,7 +652,7 @@ class SearchManager {
                 mozallowfullscreen="true" 
                 allowfullscreen
                 style="border: none;"
-                onload="document.getElementById('iframe-loading-${identifier}').style.display='none';"
+                onload="(function() { const loadingEl = document.getElementById('iframe-loading-${identifier}'); if (loadingEl) { setTimeout(() => { loadingEl.style.display='none'; }, 1000); } })();"
                 onerror="document.getElementById('iframe-loading-${identifier}').innerHTML='<p>Failed to load item. <a href=\\"https://archive.org/details/${identifier}\\" target=\\"_blank\\">Click here to view on Internet Archive</a></p>';">
               </iframe>
             </div>
@@ -616,6 +690,41 @@ class SearchManager {
 
     document.body.appendChild(modal);
 
+    // Add timeout message logic for loading
+    const loadingElement = document.getElementById(`iframe-loading-${identifier}`);
+    if (loadingElement) {
+      let timeoutMessageShown = false;
+      const timeoutThreshold = 10000; // 10 seconds
+      const loadTimeoutId = setTimeout(() => {
+        if (loadingElement && loadingElement.style.display !== 'none' && !timeoutMessageShown) {
+          timeoutMessageShown = true;
+          const existingText = loadingElement.querySelector('p');
+          if (existingText) {
+            const timeoutMessage = document.createElement('div');
+            timeoutMessage.className = 'loading-timeout-message';
+            timeoutMessage.style.cssText = 'margin-top: 1rem; text-align: center; font-size: 0.875rem; color: var(--text-secondary); max-width: 400px; padding: 0 1rem;';
+            timeoutMessage.innerHTML = `
+              <p style="margin: 0.5rem 0;">This resource is taking longer than expected to load from the Internet Archive.</p>
+              <p style="margin: 0.5rem 0;">It will eventually load. For immediate access, <a href="https://archive.org/details/${identifier}" target="_blank" style="color: var(--primary-color); text-decoration: underline;">visit the Internet Archive</a>.</p>
+            `;
+            loadingElement.appendChild(timeoutMessage);
+          }
+        }
+      }, timeoutThreshold);
+
+      // Clear timeout when iframe loads
+      const iframe = modal.querySelector('iframe');
+      if (iframe) {
+        const originalOnload = iframe.onload;
+        iframe.onload = function () {
+          if (originalOnload) originalOnload.call(this);
+          if (loadTimeoutId) {
+            clearTimeout(loadTimeoutId);
+          }
+        };
+      }
+    }
+
     // Add click outside to close
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
@@ -625,9 +734,142 @@ class SearchManager {
   }
 
 
-  async goToPage(page) {
+  async goToPage(page, position = 'top') {
     this.currentPage = page;
+
+    // If filtering is active, use filtered results
+    if (this.isFiltering && this.filteredResults.length > 0) {
+      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      const startIndex = (page - 1) * resultsPerPage;
+      const endIndex = startIndex + resultsPerPage;
+      const paginatedResults = this.filteredResults.slice(startIndex, endIndex);
+
+      this.currentResults = paginatedResults;
+      this.displayResults(paginatedResults);
+
+      // Only scroll if pagination button was clicked from bottom
+      if (position === 'bottom') {
+        // Wait for DOM to update before calculating scroll position
+        requestAnimationFrame(() => {
+          const layout = document.querySelector('.search-preview-layout');
+          if (layout) {
+            // Get navigation element height for offset
+            const nav = document.querySelector('.navigation');
+            const navHeight = nav ? nav.offsetHeight : 64; // Default to 64px if not found
+
+            // Calculate scroll position: target element position minus nav height
+            const layoutRect = layout.getBoundingClientRect();
+            const currentScrollY = window.scrollY || window.pageYOffset;
+            const targetScrollY = currentScrollY + layoutRect.top - navHeight;
+
+            window.scrollTo({
+              top: targetScrollY,
+              behavior: 'smooth'
+            });
+          }
+        });
+      }
+      return;
+    }
+
+    // If browsing all items, use cached results instead of re-searching
+    if (this.isBrowsingAllItems) {
+      const allResults = window.internetArchiveAPI?.getAllSearchResults() || this.allResults || [];
+      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      const startIndex = (page - 1) * resultsPerPage;
+      const endIndex = startIndex + resultsPerPage;
+      const paginatedResults = allResults.slice(startIndex, endIndex);
+
+      this.currentResults = paginatedResults;
+      this.totalResults = allResults.length;
+      this.displayResults(paginatedResults);
+
+      // Only scroll if pagination button was clicked from bottom
+      if (position === 'bottom') {
+        // Wait for DOM to update before calculating scroll position
+        requestAnimationFrame(() => {
+          const layout = document.querySelector('.search-preview-layout');
+          if (layout) {
+            // Get navigation element height for offset
+            const nav = document.querySelector('.navigation');
+            const navHeight = nav ? nav.offsetHeight : 64; // Default to 64px if not found
+
+            // Calculate scroll position: target element position minus nav height
+            const layoutRect = layout.getBoundingClientRect();
+            const currentScrollY = window.scrollY || window.pageYOffset;
+            const targetScrollY = currentScrollY + layoutRect.top - navHeight;
+
+            window.scrollTo({
+              top: targetScrollY,
+              behavior: 'smooth'
+            });
+          }
+        });
+      }
+      return;
+    }
+
+    // If we have allResults stored (from a previous search), use them for pagination
+    if (this.allResults && this.allResults.length > 0) {
+      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      const startIndex = (page - 1) * resultsPerPage;
+      const endIndex = startIndex + resultsPerPage;
+      const paginatedResults = this.allResults.slice(startIndex, endIndex);
+
+      this.currentResults = paginatedResults;
+      this.totalResults = this.allResults.length;
+      this.displayResults(paginatedResults);
+
+      // Only scroll if pagination button was clicked from bottom
+      if (position === 'bottom') {
+        // Wait for DOM to update before calculating scroll position
+        requestAnimationFrame(() => {
+          const layout = document.querySelector('.search-preview-layout');
+          if (layout) {
+            // Get navigation element height for offset
+            const nav = document.querySelector('.navigation');
+            const navHeight = nav ? nav.offsetHeight : 64; // Default to 64px if not found
+
+            // Calculate scroll position: target element position minus nav height
+            const layoutRect = layout.getBoundingClientRect();
+            const currentScrollY = window.scrollY || window.pageYOffset;
+            const targetScrollY = currentScrollY + layoutRect.top - navHeight;
+
+            window.scrollTo({
+              top: targetScrollY,
+              behavior: 'smooth'
+            });
+          }
+        });
+      }
+      return;
+    }
+
+    // Fallback: re-perform search for pagination
     await this.performSearch(true);
+
+    // Only scroll if pagination button was clicked from bottom
+    if (position === 'bottom') {
+      const layout = document.querySelector('.search-preview-layout');
+      if (layout) {
+        // Get navigation element height for offset
+        const nav = document.querySelector('.navigation');
+        const navHeight = nav ? nav.offsetHeight : 64; // Default to 64px if not found
+
+        // Calculate scroll position: target element position minus nav height
+        const layoutRect = layout.getBoundingClientRect();
+        const currentScrollY = window.scrollY || window.pageYOffset;
+        const targetScrollY = currentScrollY + layoutRect.top - navHeight;
+
+        window.scrollTo({
+          top: targetScrollY,
+          behavior: 'smooth'
+        });
+      }
+    }
   }
 
   /**
@@ -636,7 +878,12 @@ class SearchManager {
   async changeResultsPerPage() {
     const select = document.getElementById('demo-results-per-page');
     if (select) {
-      this.resultsPerPage = parseInt(select.value);
+      const value = select.value;
+      if (value === 'all') {
+        this.resultsPerPage = Number.MAX_SAFE_INTEGER;
+      } else {
+        this.resultsPerPage = parseInt(value);
+      }
 
       // If there's a current search query, refresh the search
       const query = document.getElementById('demo-search-query')?.value || '';
@@ -648,20 +895,169 @@ class SearchManager {
   }
 
   /**
-   * Update search note based on selected scope
+   * Browse all items from collection
    */
-  updateSearchNote() {
-    // Delegate to filterManager if available
-    if (window.filterManager && window.filterManager.updateSearchNote) {
-      window.filterManager.updateSearchNote();
+  async browseAllItems() {
+    const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'all';
+    const projectConfig = window.PROJECT_CONFIG || {};
+    const collectionName = projectConfig.projectName || 'Collection';
+
+    // Only allow browsing when collection scope is selected
+    if (searchScope !== 'collection') {
+      this.showError(`Browse All Items is only available when ${collectionName} Collection scope is selected.`);
       return;
     }
 
-    // Fallback implementation
-    const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'filters';
-    const scopeConfig = searchScope === 'all' ?
-      { description: 'Searching the entire Internet Archive', placeholder: 'Search for materials...' } :
-      { description: 'Searching with custom filters', placeholder: 'Search for materials...' };
+    this.isBrowsingAllItems = true;
+    this.isLoading = true;
+    this.currentPage = 1; // Reset to first page
+    this.showLoading();
+
+    // Clear search query
+    const queryInput = document.getElementById('demo-search-query');
+    if (queryInput) {
+      queryInput.value = '';
+    }
+
+    try {
+      const filters = this.getFilters();
+      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+
+      // Perform search with empty query - API will handle collection constraint
+      const results = await window.internetArchiveAPI.search('', {
+        ...filters,
+        resultsPerPage: resultsPerPage,
+        page: this.currentPage || 1
+      });
+
+      // Store all results from API for client-side filtering
+      const allResults = window.internetArchiveAPI ? window.internetArchiveAPI.getAllSearchResults() : results;
+      this.allResults = allResults;
+
+      // Apply document type filter if one is selected
+      const documentType = filters.documentType || this.currentSearchFilters.documentType;
+      if (documentType) {
+        this.currentSearchFilters.documentType = documentType;
+        this.filteredResults = allResults.filter(item => item.type === documentType);
+        this.isFiltering = true;
+        this.totalResults = this.filteredResults.length;
+
+        // Get paginated results from filtered set
+        const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+        const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+        const startIndex = (this.currentPage - 1) * resultsPerPage;
+        const endIndex = startIndex + resultsPerPage;
+        this.currentResults = this.filteredResults.slice(startIndex, endIndex);
+      } else {
+        // No filter - show all results
+        this.currentSearchFilters.documentType = '';
+        this.filteredResults = allResults;
+        this.isFiltering = false;
+        this.totalResults = allResults.length;
+        this.currentResults = results;
+      }
+
+      this.displayResults(this.currentResults);
+
+      // Show success message
+      const projectConfig = window.PROJECT_CONFIG || {};
+      const collectionName = projectConfig.projectName || 'Collection';
+      this.showSuccess(`Found ${this.totalResults} items in the ${collectionName} collection.`);
+
+    } catch (error) {
+      console.error('Browse all items error:', error);
+      this.showError('An error occurred while browsing items. Please try again.');
+    } finally {
+      this.isLoading = false;
+      this.hideLoading();
+    }
+  }
+
+  /**
+   * Update browse button visibility based on search scope
+   */
+  updateBrowseButtonVisibility() {
+    const browseBtn = document.getElementById('browse-all-btn');
+    const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'all';
+
+    if (browseBtn) {
+      if (searchScope === 'collection') {
+        browseBtn.style.display = 'inline-block';
+      } else {
+        browseBtn.style.display = 'none';
+      }
+    }
+  }
+
+  /**
+   * Change document type filter and update display
+   */
+  changeDocumentTypeFilter() {
+    const select = document.getElementById('demo-document-type');
+    if (select) {
+      const documentType = select.value;
+      this.currentSearchFilters.documentType = documentType;
+      this.currentPage = 1; // Reset to first page
+
+      // Get all results - try allResults first, then API
+      let allResults = this.allResults;
+      if (!allResults || allResults.length === 0) {
+        // Try to get from API
+        allResults = window.internetArchiveAPI ? window.internetArchiveAPI.getAllSearchResults() : [];
+      }
+
+      // If no results available, do nothing - don't trigger search or show error
+      // User can select filter first, then click search/browse to get filtered results
+      if (!allResults || allResults.length === 0) {
+        // Silently return - no error message, just wait for user to perform search/browse
+        return;
+      }
+
+      // Store allResults for future filtering
+      this.allResults = allResults;
+
+      // Filter all results by document type
+      if (documentType) {
+        this.filteredResults = allResults.filter(item => item.type === documentType);
+        this.isFiltering = true;
+      } else {
+        // No filter - show all results
+        this.filteredResults = [...allResults];
+        this.isFiltering = false;
+      }
+
+      // Update total results to reflect filtered count
+      this.totalResults = this.filteredResults.length;
+
+      // If filtering resulted in no results, show helpful message
+      if (this.filteredResults.length === 0) {
+        this.showNoResultsMessage('No results available for the selected filter. Please change filters or perform a new search.');
+        return;
+      }
+
+      // Get paginated results from filtered set
+      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      const startIndex = (this.currentPage - 1) * resultsPerPage;
+      const endIndex = startIndex + resultsPerPage;
+      const paginatedResults = this.filteredResults.slice(startIndex, endIndex);
+
+      this.currentResults = paginatedResults;
+      this.displayResults(paginatedResults);
+    }
+  }
+
+  /**
+   * Update search note based on selected scope
+   */
+  updateSearchNote() {
+    const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'all';
+    const projectConfig = window.PROJECT_CONFIG || {};
+    const collectionName = projectConfig.projectName || 'Collection';
+    const scopeConfig = searchScope === 'collection' ?
+      { description: `Searching the ${collectionName} collection`, placeholder: 'Search for materials...' } :
+      { description: 'Searching the entire Internet Archive', placeholder: 'Search for materials...' };
 
     const searchNote = document.getElementById('search-note');
     const searchInput = document.getElementById('demo-search-query');

@@ -3,7 +3,20 @@
  * Centralized configuration for the Archival Framework Demo
  */
 
+// Detect application mode (backend tool vs public frontend)
+const APP_MODE = (function () {
+    const path = window.location.pathname;
+    if (path.includes('/tool/') || path.includes('/tool/index.html')) {
+        return 'backend';
+    }
+    return 'frontend';
+})();
+
 const CONFIG = {
+    // Application Mode
+    MODE: APP_MODE,
+    IS_BACKEND: APP_MODE === 'backend',
+    IS_FRONTEND: APP_MODE === 'frontend',
     // API Configuration
     API: {
         BASE_URL: 'https://archive.org',
@@ -15,7 +28,7 @@ const CONFIG = {
     // Search Configuration
     SEARCH: {
         DEFAULT_QUERY: '',
-        DEFAULT_SCOPE: 'filters',
+        DEFAULT_SCOPE: 'all',
         RESULTS_PER_PAGE_OPTIONS: [6, 12, 24, 50],
         DEFAULT_RESULTS_PER_PAGE: 6,
         MAX_RESULTS: 1000
@@ -46,17 +59,26 @@ const CONFIG = {
         DEFAULT_ICON: '<i data-feather="home" class="icon-sm"></i>'
     },
 
-    // Material Assignment Types
-    MATERIAL_TYPES: [
-        { value: 'photographic', label: 'Photographic' },
-        { value: 'conversational', label: 'Conversational' },
-        { value: 'endangered', label: 'Endangered' },
-        { value: 'academic', label: 'Academic' },
-        { value: 'policy', label: 'Policy' },
-        { value: 'financial', label: 'Financial' },
-        { value: 'ephemeral', label: 'Ephemeral Web' },
-        { value: 'institutional', label: 'Institutional' }
-    ],
+    // Material Assignment Types (loaded from PROJECT_CONFIG)
+    get MATERIAL_TYPES() {
+        if (window.PROJECT_CONFIG && window.PROJECT_CONFIG.documentTypes) {
+            return window.PROJECT_CONFIG.documentTypes.map(type => ({
+                value: type.id,
+                label: type.label
+            }));
+        }
+        // Fallback to default
+        return [
+            { value: 'photographic', label: 'Photographic' },
+            { value: 'conversational', label: 'Conversational' },
+            { value: 'endangered', label: 'Endangered' },
+            { value: 'academic', label: 'Academic' },
+            { value: 'policy', label: 'Policy' },
+            { value: 'financial', label: 'Financial' },
+            { value: 'ephemeral', label: 'Ephemeral Web' },
+            { value: 'institutional', label: 'Institutional' }
+        ];
+    },
 
     // UI Configuration
     UI: {
@@ -66,24 +88,30 @@ const CONFIG = {
         LOADING_DELAY: 100
     },
 
-    // Search Scope Configuration
-    SEARCH_SCOPES: {
-        FILTERS: {
-            value: 'filters',
-            label: 'Custom Filters',
-            description: 'Search within your custom collections, users, and playlists',
-            placeholder: 'Enter search terms for your research topic',
-            emptyMessage: 'Add custom filters to search within specific collections, users, or playlists.',
-            url: null
-        },
-        ALL: {
-            value: 'all',
-            label: 'Entire Internet Archive',
-            description: 'Search the entire Internet Archive',
-            placeholder: 'Enter search terms for your research topic',
-            emptyMessage: 'Click the search button above to find materials in the entire Internet Archive.',
-            url: null
-        }
+    // Search Scope Configuration (loaded from PROJECT_CONFIG)
+    get SEARCH_SCOPES() {
+        const projectConfig = window.PROJECT_CONFIG || {};
+        const collectionId = projectConfig.collectionId || '';
+        const projectName = projectConfig.projectName || 'Collection';
+
+        return {
+            COLLECTION: {
+                value: 'collection',
+                label: `${projectName} Collection`,
+                description: `Search within the ${projectName} collection`,
+                placeholder: 'Enter search terms for your research topic',
+                emptyMessage: `Enter search terms to find materials in the ${projectName} collection.`,
+                url: projectConfig.collectionUrl || null
+            },
+            ALL: {
+                value: 'all',
+                label: 'Entire Internet Archive',
+                description: 'Search the entire Internet Archive',
+                placeholder: 'Enter search terms for your research topic',
+                emptyMessage: 'Click the search button above to find materials in the entire Internet Archive.',
+                url: null
+            }
+        };
     },
 
     // Error Messages

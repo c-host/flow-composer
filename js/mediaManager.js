@@ -149,13 +149,14 @@ class MediaManager {
         this.currentMediaPlayer = null;
     }
 
+
     /**
      * Log media operation for debugging
      * @param {string} operation - Operation being performed
      * @param {Object} details - Additional details
      */
     logMediaOperation(operation, details = {}) {
-        // Debug logging removed
+        // No-op for production
     }
 
     // ============================================================================
@@ -196,32 +197,95 @@ class MediaManager {
     pausePreviewMedia() {
         this.logMediaOperation('pausePreviewMedia');
 
+        // Stop all video and audio elements in preview panels
+        const previewPanels = [
+            '#media-preview-content',
+            '#flow-media-preview-content',
+            '#preview-content .media-embed-container',
+            '.material-preview-detail .media-embed-container'
+        ];
+
+        previewPanels.forEach(selector => {
+            const panel = document.querySelector(selector);
+            if (panel) {
+                // Stop native video/audio elements
+                const mediaElements = panel.querySelectorAll('video, audio');
+                mediaElements.forEach(element => {
+                    try {
+                        element.pause();
+                        element.currentTime = 0;
+                    } catch (error) {
+                        console.warn('Could not pause media element:', error);
+                    }
+                });
+
+                // Stop Internet Archive iframe embeds by reloading them (this stops playback)
+                const iframes = panel.querySelectorAll('iframe[src*="archive.org"]');
+                iframes.forEach(iframe => {
+                    try {
+                        // Try to post pause message (may not work due to CORS, but worth trying)
+                        try {
+                            iframe.contentWindow.postMessage({
+                                action: 'pause',
+                                source: 'flow-composer'
+                            }, '*');
+                        } catch (e) {
+                            // CORS restriction - expected
+                        }
+
+                        // Reload the iframe to stop playback
+                        // Add a cache-busting parameter to force reload
+                        const currentSrc = iframe.src;
+                        const separator = currentSrc.includes('?') ? '&' : '?';
+                        iframe.src = currentSrc + separator + '_stop=' + Date.now();
+
+                        // After a brief moment, restore original src (iframe will be in stopped state)
+                        setTimeout(() => {
+                            iframe.src = currentSrc;
+                        }, 50);
+                    } catch (error) {
+                        console.warn('Could not stop iframe:', error);
+                    }
+                });
+            }
+        });
+
+        // Also handle the tracked preview iframe
         if (this.currentMediaState.previewIframe) {
             try {
                 if (this.currentMediaState.previewIframe.tagName === 'IFRAME') {
-                    // Handle iframe content
-                    this.currentMediaState.previewIframe.contentWindow.postMessage({
-                        action: 'pause',
-                        source: 'flow-composer'
-                    }, '*');
+                    // Try to post pause message (may not work due to CORS)
+                    try {
+                        this.currentMediaState.previewIframe.contentWindow.postMessage({
+                            action: 'pause',
+                            source: 'flow-composer'
+                        }, '*');
+                    } catch (e) {
+                        // CORS restriction - expected
+                    }
 
-                    // Also try to reload the iframe to stop playback
+                    // Reload the iframe to stop playback
                     const currentSrc = this.currentMediaState.previewIframe.src;
-                    this.currentMediaState.previewIframe.src = '';
+                    const separator = currentSrc.includes('?') ? '&' : '?';
+                    this.currentMediaState.previewIframe.src = currentSrc + separator + '_stop=' + Date.now();
+
+                    // Restore original src after brief moment
                     setTimeout(() => {
-                        this.currentMediaState.previewIframe.src = currentSrc;
-                    }, 100);
+                        if (this.currentMediaState.previewIframe && this.currentMediaState.previewIframe.tagName === 'IFRAME') {
+                            this.currentMediaState.previewIframe.src = currentSrc;
+                        }
+                    }, 50);
                 } else if (this.currentMediaState.previewIframe.tagName === 'VIDEO' || this.currentMediaState.previewIframe.tagName === 'AUDIO') {
                     // Handle native media elements
                     this.currentMediaState.previewIframe.pause();
-                    this.currentMediaState.currentTime = this.currentMediaState.previewIframe.currentTime;
+                    this.currentMediaState.previewIframe.currentTime = 0;
+                    this.currentMediaState.currentTime = 0;
                 } else if (this.currentMediaState.previewIframe.tagName === 'IMG') {
                     // Handle images - no need to pause, just track state
                     this.currentMediaState.isPlaying = false;
                 }
 
                 this.currentMediaState.isPlaying = false;
-                // Debug logging removed
             } catch (error) {
                 console.warn('Could not pause preview media:', error);
             }
@@ -283,7 +347,6 @@ class MediaManager {
         this.currentMediaState.isPlaying = false;
         this.currentMediaState.currentTime = 0;
 
-        // Debug logging removed
     }
 
     /**
@@ -337,13 +400,13 @@ class MediaManager {
 
             if (mediaType === 'video') {
                 if (mediaInfo.hasVideo && mediaInfo.videoFiles.length > 0) {
-                    // Use Internet Archive embed
+                    // Use Internet Archive embed with parameters to minimize title overlay
                     mediaHTML = `
                         <div class="media-player">
                             <div class="media-player-container">
                                 <iframe 
                                     id="preview-iframe-${identifier}"
-                                    src="https://archive.org/embed/${identifier || identifier}" 
+                                    src="https://archive.org/embed/${identifier || identifier}?ui=embed&wrapper=false" 
                                     width="100%" 
                                     height="300" 
                                     frameborder="0" 
@@ -374,13 +437,13 @@ class MediaManager {
                 }
             } else if (mediaType === 'audio') {
                 if (mediaInfo.hasAudio && mediaInfo.audioFiles.length > 0) {
-                    // Use Internet Archive embed for audio
+                    // Use Internet Archive embed for audio with parameters to minimize title overlay
                     mediaHTML = `
                         <div class="media-player">
                             <div class="media-player-container">
                                 <iframe 
                                     id="preview-iframe-${identifier}"
-                                    src="https://archive.org/embed/${identifier || identifier}" 
+                                    src="https://archive.org/embed/${identifier || identifier}?ui=embed&wrapper=false" 
                                     width="100%" 
                                     height="166" 
                                     frameborder="0">
@@ -666,26 +729,17 @@ class MediaManager {
     async openFullscreen(identifier, mediaType, title, imageUrl = null) {
         this.logMediaOperation('openFullscreen', { identifier, mediaType, title });
 
-        // Track the current preview media before opening fullscreen
-        const previewIframe = document.querySelector('#media-preview-content iframe, #flow-media-preview-content iframe');
-        const previewImage = document.querySelector('#media-preview-content img, #flow-media-preview-content img');
+        // For video and audio, stop all preview media before opening fullscreen
+        if (mediaType === 'video' || mediaType === 'audio' || mediaType === 'item') {
+            // Stop all preview media immediately
+            this.pausePreviewMedia();
 
-        if (previewIframe && previewIframe.src && previewIframe.src.includes('archive.org')) {
-            this.updateMediaState({
-                previewIframe: previewIframe,
-                identifier: identifier,
-                mediaType: mediaType
-            });
-        } else if (previewImage && previewImage.src && previewImage.src.includes('archive.org')) {
-            this.updateMediaState({
-                previewIframe: previewImage, // Reuse the property for images
-                identifier: identifier,
-                mediaType: mediaType
-            });
+            // Small delay to ensure iframes are stopped before opening fullscreen
+            await new Promise(resolve => setTimeout(resolve, 100));
+        } else {
+            // For other media types, just pause (less aggressive)
+            this.pausePreviewMedia();
         }
-
-        // Pause the preview media to prevent double playback
-        this.pausePreviewMedia();
 
         // Remove any existing fullscreen modals
         const existingModals = document.querySelectorAll('.fullscreen-modal');
@@ -714,7 +768,7 @@ class MediaManager {
             <div class="fullscreen-content">
                 <div class="fullscreen-header">
                     <h3>${title || 'Loading...'}</h3>
-                    <button class="fullscreen-close" onclick="demoApp.handleFullscreenClose()">×</button>
+                    <button class="fullscreen-close" onclick="(window.demoApp || window.publicApp).handleFullscreenClose()">×</button>
                 </div>
                 <div class="fullscreen-media">
                     <div class="loading-spinner"></div>
@@ -767,7 +821,7 @@ class MediaManager {
                         <div class="fullscreen-content">
                             <div class="fullscreen-header">
                                 <h3>${title || `${actualMediaType.charAt(0).toUpperCase() + actualMediaType.slice(1)} Player`}</h3>
-                                <button class="fullscreen-close" onclick="demoApp.handleFullscreenClose()">×</button>
+                                <button class="fullscreen-close" onclick="(window.demoApp || window.publicApp).handleFullscreenClose()">×</button>
                             </div>
                             <div class="fullscreen-media">
                                 ${mediaElement}
@@ -775,25 +829,26 @@ class MediaManager {
                         </div>
                     `;
                 } else {
-                    // Fallback to iframe embed
+                    // Fallback to iframe embed with parameters to minimize title overlay
+                    const loadingId = `fullscreen-loading-${identifier}`;
                     contentHTML = `
                         <div class="fullscreen-content">
                             <div class="fullscreen-header">
                                 <h3>${title || `${actualMediaType.charAt(0).toUpperCase() + actualMediaType.slice(1)} Player`}</h3>
-                                <button class="fullscreen-close" onclick="demoApp.handleFullscreenClose()">×</button>
+                                <button class="fullscreen-close" onclick="(window.demoApp || window.publicApp).handleFullscreenClose()">×</button>
                             </div>
                             <div class="fullscreen-media">
-                                <div class="media-loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 2; background-color: var(--surface-2);">
+                                <div class="media-loading" id="${loadingId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; background-color: var(--surface-2);">
                                     <div class="loading-spinner"></div>
                                 </div>
                                 <iframe 
-                                    src="https://archive.org/embed/${identifier}" 
+                                    src="https://archive.org/embed/${identifier}?ui=embed&wrapper=false" 
                                     width="100%" 
                                     height="${actualMediaType === 'audio' ? '166' : height}" 
                                     frameborder="0" 
                                     webkitallowfullscreen="true" 
                                     mozallowfullscreen="true"
-                                    onload="setTimeout(() => { this.parentElement.querySelector('.media-loading').style.display='none'; }, 1000);">
+                                    onload="(function() { const loadingEl = document.getElementById('${loadingId}'); if (loadingEl) { setTimeout(() => { loadingEl.style.display='none'; }, 1000); } })();">
                                 </iframe>
                             </div>
                         </div>
@@ -804,7 +859,7 @@ class MediaManager {
                     <div class="fullscreen-content">
                         <div class="fullscreen-header">
                             <h3>${title || 'Document Viewer'}</h3>
-                            <button class="fullscreen-close" onclick="demoApp.handleFullscreenClose()">×</button>
+                            <button class="fullscreen-close" onclick="(window.demoApp || window.publicApp).handleFullscreenClose()">×</button>
                         </div>
                         <div class="fullscreen-media">
                             <div class="media-loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 2; background-color: var(--surface-2);">
@@ -821,27 +876,28 @@ class MediaManager {
                     </div>
                 `;
             } else if (mediaType === 'image') {
-                // Use Internet Archive's image viewer embed for navigation
+                // Use Internet Archive's image viewer embed for navigation with parameters to minimize title overlay
                 // This embeds just the image viewer component with navigation controls
+                const loadingId = `fullscreen-loading-${identifier}`;
                 contentHTML = `
                     <div class="fullscreen-content">
                         <div class="fullscreen-header">
                             <h3>${title || 'Image Viewer'}</h3>
-                            <button class="fullscreen-close" onclick="demoApp.handleFullscreenClose()">×</button>
+                            <button class="fullscreen-close" onclick="(window.demoApp || window.publicApp).handleFullscreenClose()">×</button>
                         </div>
                         <div class="fullscreen-media">
-                            <div class="media-loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 2; background-color: var(--surface-2);">
+                            <div class="media-loading" id="${loadingId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; background-color: var(--surface-2);">
                                 <div class="loading-spinner"></div>
                             </div>
                             <iframe 
-                                src="https://archive.org/embed/${identifier}" 
+                                src="https://archive.org/embed/${identifier}?ui=embed&wrapper=false" 
                                 width="100%" 
                                 height="90vh" 
                                 frameborder="0"
                                 webkitallowfullscreen="true"
                                 mozallowfullscreen="true"
                                 allowfullscreen
-                                onload="setTimeout(() => { this.parentElement.querySelector('.media-loading').style.display='none'; }, 1000);">
+                                onload="(function() { const loadingEl = document.getElementById('${loadingId}'); if (loadingEl) { setTimeout(() => { loadingEl.style.display='none'; }, 1000); } })();">
                             </iframe>
                         </div>
                     </div>
@@ -850,6 +906,46 @@ class MediaManager {
 
             // Update modal content
             modal.innerHTML = contentHTML;
+
+            // Add timeout message logic for iframe embeds
+            const loadingElements = modal.querySelectorAll('.media-loading[id^="fullscreen-loading-"]');
+            loadingElements.forEach(loadingElement => {
+                const loadingId = loadingElement.id;
+                const identifierMatch = loadingId.match(/fullscreen-loading-(.+)/);
+                if (identifierMatch) {
+                    const itemIdentifier = identifierMatch[1];
+                    let timeoutMessageShown = false;
+                    const timeoutThreshold = 10000; // 10 seconds
+                    const loadTimeoutId = setTimeout(() => {
+                        if (loadingElement && loadingElement.style.display !== 'none' && !timeoutMessageShown) {
+                            timeoutMessageShown = true;
+                            const spinner = loadingElement.querySelector('.loading-spinner');
+                            if (spinner) {
+                                const timeoutMessage = document.createElement('div');
+                                timeoutMessage.className = 'loading-timeout-message';
+                                timeoutMessage.style.cssText = 'margin-top: 1rem; text-align: center; font-size: 0.875rem; color: var(--text-secondary); max-width: 400px; padding: 0 1rem;';
+                                timeoutMessage.innerHTML = `
+                                    <p style="margin: 0.5rem 0;">This resource is taking longer than expected to load from the Internet Archive.</p>
+                                    <p style="margin: 0.5rem 0;">It will eventually load. For immediate access, <a href="https://archive.org/details/${itemIdentifier}" target="_blank" style="color: var(--primary-color); text-decoration: underline;">visit the Internet Archive</a>.</p>
+                                `;
+                                loadingElement.appendChild(timeoutMessage);
+                            }
+                        }
+                    }, timeoutThreshold);
+
+                    // Clear timeout when iframe loads
+                    const iframe = modal.querySelector(`iframe[src*="${itemIdentifier}"]`);
+                    if (iframe) {
+                        const originalOnload = iframe.onload;
+                        iframe.onload = function () {
+                            if (originalOnload) originalOnload.call(this);
+                            if (loadTimeoutId) {
+                                clearTimeout(loadTimeoutId);
+                            }
+                        };
+                    }
+                }
+            });
 
             // Set playback position for video/audio elements if we have a current time
             if (this.currentMediaState.currentTime > 0) {
@@ -862,12 +958,12 @@ class MediaManager {
             }
 
         } catch (error) {
-            console.error('❌ Error in openFullscreen:', error);
+            console.error('Error in openFullscreen:', error);
             modal.innerHTML = `
                 <div class="fullscreen-content">
                     <div class="fullscreen-header">
                         <h3>Error Loading Media</h3>
-                        <button class="fullscreen-close" onclick="demoApp.handleFullscreenClose()">×</button>
+                        <button class="fullscreen-close" onclick="(window.demoApp || window.publicApp).handleFullscreenClose()">×</button>
                     </div>
                     <div class="fullscreen-media">
                         <p>Unable to load media. Please try again.</p>
@@ -923,7 +1019,7 @@ class MediaManager {
         const mediaPreviewContent = document.getElementById('flow-media-preview-content');
 
         if (!mediaPreviewSection || !mediaPreviewContent) {
-            console.error('❌ Media preview elements not found');
+            console.error('Media preview elements not found');
             return;
         }
 
@@ -935,7 +1031,6 @@ class MediaManager {
 
         try {
             const material = this.getMaterialByIdentifier(identifier);
-            // Debug logging removed
 
             // Get media info
             const mediaInfo = await this.getMediaInfo(identifier);
@@ -946,7 +1041,6 @@ class MediaManager {
                 if (mediaInfo && mediaInfo.hasVideo && mediaInfo.videoFiles.length > 0) {
                     const videoFile = mediaInfo.videoFiles[0];
                     mediaUrl = videoFile.url || `https://archive.org/download/${identifier}/${videoFile.name}`;
-                    // Debug logging removed
                 }
             } else if (mediaType === 'audio') {
                 if (mediaInfo && mediaInfo.hasAudio && mediaInfo.audioFiles.length > 0) {
@@ -1125,7 +1219,7 @@ class MediaManager {
                 <div class="media-player">
                     <div class="media-player-container">
                         <iframe 
-                            src="https://archive.org/embed/${identifier || identifier}" 
+                            src="https://archive.org/embed/${identifier || identifier}?ui=embed&wrapper=false" 
                             width="100%" 
                             height="500" 
                             frameborder="0"
@@ -1204,7 +1298,7 @@ class MediaManager {
                     <div class="media-player">
                         <div class="media-player-container">
                             <iframe 
-                                src="https://archive.org/embed/${identifier || identifier}" 
+                                src="https://archive.org/embed/${identifier || identifier}?ui=embed&wrapper=false" 
                                 width="100%" 
                                 height="500" 
                                 frameborder="0">
@@ -1251,7 +1345,7 @@ class MediaManager {
 }
 
 // Initialize and expose globally
-window.mediaManager = new MediaManager(stateManager, eventManager);
+window.mediaManager = new MediaManager(window.stateManager || null, window.eventManager || null);
 
 // Set up global reference to demoApp when it's available
 document.addEventListener('DOMContentLoaded', () => {

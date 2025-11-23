@@ -77,8 +77,20 @@ class ModalManager {
 
         if (modal) {
             header.textContent = 'Create New Flow';
-            createButton.textContent = 'Create Flow';
-            createButton.onclick = () => this.delegateToApp('createNewFlow');
+            if (createButton) {
+                createButton.textContent = 'Create Flow';
+                // Remove inline onclick attribute if present
+                createButton.removeAttribute('onclick');
+                // Remove any existing event listeners by cloning and replacing
+                const newButton = createButton.cloneNode(true);
+                createButton.parentNode.replaceChild(newButton, createButton);
+                // Add new event listener
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.delegateToApp('createNewFlow');
+                });
+            }
 
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -110,6 +122,23 @@ class ModalManager {
      * Hide flow creation modal
      */
     hideFlowCreationModal() {
+        const app = this.getAppInstance();
+
+        // If we're in edit mode, cancel the edit to restore original state
+        if (app && app.editingFlow) {
+            if (app && typeof app.cancelFlowEdit === 'function') {
+                app.cancelFlowEdit();
+            }
+        }
+
+        // Clean up Quill editors before closing
+        if (app && app.materials && typeof app.materials.cleanupQuillEditors === 'function') {
+            app.materials.cleanupQuillEditors();
+        }
+
+        // Clear form fields to prevent stale data
+        this.delegateToApp('clearFlowCreationForm');
+
         const modal = document.getElementById('flow-creation-modal');
         if (modal) {
             modal.style.display = 'none';
@@ -125,7 +154,6 @@ class ModalManager {
      * @param {string} flowId - ID of the flow to show details for
      */
     showFlowDetails(flowId) {
-        // Debug logging removed
 
         // Get flows from the app instance instead of state manager
         const app = this.getAppInstance();
@@ -135,9 +163,7 @@ class ModalManager {
         }
 
         const createdFlows = app.createdFlows || [];
-        // Debug logging removed
         const flow = createdFlows.find(f => f.id === flowId);
-        // Debug logging removed
         if (!flow) {
             console.warn('ModalManager: Flow not found for ID:', flowId);
             return;
@@ -162,9 +188,8 @@ class ModalManager {
                     </div>
                 </div>
             `;
-            // Debug logging removed
+            // Render immediately to avoid delay
             const flowDetailsHTML = window.renderManager.renderFlowDetails(flow);
-            // Debug logging removed
             content.innerHTML = flowDetailsHTML || '<p>Error loading flow details</p>';
 
             // Replace Feather icons in the flow details
@@ -174,6 +199,25 @@ class ModalManager {
                     feather.replace();
                 }, 10);
             }
+
+            // Automatically load inline media previews for all materials
+            setTimeout(() => {
+                this.loadAllInlineMediaPreviews(flow);
+            }, 100);
+
+            // Setup document type filter functionality
+            setTimeout(() => {
+                this.setupDocumentTypeFilters(flow);
+            }, 150);
+
+            // Enhance descriptions asynchronously in the background (non-blocking)
+            setTimeout(() => {
+                window.renderManager.enhanceFlowDetailsDescriptions(flow).catch(error => {
+                    console.warn('[ModalManager] Error enhancing flow descriptions:', error);
+                });
+            }, 200);
+
+            // Note: Feather icons, media previews, and filters are now set up in the renderFlowDetails promise callback above
 
             // Add Edit Flow button to existing modal footer
             const modalFooter = modal.querySelector('.modal-footer');
@@ -238,18 +282,31 @@ class ModalManager {
 
         if (modal) {
             header.textContent = 'Edit Flow';
-            createButton.textContent = 'Save Changes';
-            createButton.onclick = () => this.delegateToApp('saveFlowChanges');
+            if (createButton) {
+                createButton.textContent = 'Save Changes';
+                // Remove any existing onclick handlers and set new one
+                createButton.onclick = null;
+                createButton.removeAttribute('onclick');
+                // Remove any existing event listeners by cloning and replacing
+                const newButton = createButton.cloneNode(true);
+                createButton.parentNode.replaceChild(newButton, createButton);
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.delegateToApp('saveFlowChanges');
+                });
+            }
 
             modal.style.display = 'flex';
 
             // Populate materials first, then setup event listeners after a short delay
             // to ensure DOM is fully updated
+            // Use a longer delay to ensure editingFlow is set and materials are ready
             this.delegateToApp('populateMaterialsAssignment');
 
             setTimeout(() => {
                 this.delegateToApp('setupFlowCreationEventListeners');
-            }, 100);
+            }, 200);
         }
     }
 
@@ -347,10 +404,216 @@ class ModalManager {
             modal.style.display === 'flex' || modal.style.display === 'block'
         ) || null;
     }
+
+    /**
+     * Load inline media previews for all materials in flow using lazy loading
+     * @param {Object} flow - Flow object
+     */
+    async loadAllInlineMediaPreviews(flow) {
+        if (!flow || !flow.materials) return;
+
+        // Track concurrent loads to limit them
+        let concurrentLoads = 0;
+        const maxConcurrentLoads = 3;
+        const pendingLoads = [];
+
+        // Function to load a single material
+        const loadMaterial = (material) => {
+            return new Promise((resolve) => {
+                try {
+                    // Try demoApp first (tool), then publicApp (public frontend), then previewManager directly
+                    let previewManager = null;
+                    if (window.demoApp && window.demoApp.preview) {
+                        previewManager = window.demoApp.preview;
+                    } else if (window.publicApp && window.previewManager) {
+                        previewManager = window.previewManager;
+                    } else if (window.previewManager) {
+                        previewManager = window.previewManager;
+                    }
+
+                    if (previewManager && typeof previewManager.loadMediaPreviewForFlow === 'function') {
+                        // Check if embed is already loaded before attempting to load
+                        const mediaContainer = document.getElementById(`flow-media-embed-${material.identifier}`);
+                        const hasLoadedEmbed = mediaContainer && mediaContainer.querySelector('iframe');
+
+                        if (!hasLoadedEmbed) {
+                            concurrentLoads++;
+                            previewManager.loadMediaPreviewForFlow(material.identifier, material)
+                                .then(() => {
+                                    concurrentLoads--;
+                                    // Process next pending load
+                                    if (pendingLoads.length > 0) {
+                                        const next = pendingLoads.shift();
+                                        loadMaterial(next);
+                                    }
+                                    resolve();
+                                })
+                                .catch((error) => {
+                                    concurrentLoads--;
+                                    console.warn('Error loading media preview for material:', material.identifier, error);
+                                    // Process next pending load
+                                    if (pendingLoads.length > 0) {
+                                        const next = pendingLoads.shift();
+                                        loadMaterial(next);
+                                    }
+                                    resolve();
+                                });
+                        } else {
+                            resolve();
+                        }
+                    } else {
+                        resolve();
+                    }
+                } catch (error) {
+                    console.warn('Error loading media preview for material:', material.identifier, error);
+                    resolve();
+                }
+            });
+        };
+
+        // Filter materials that should have previews
+        const materialsToLoad = flow.materials.filter(material =>
+            material && material.identifier && material.type !== 'data' && material.type !== 'software'
+        );
+
+        // Use Intersection Observer for lazy loading
+        if ('IntersectionObserver' in window) {
+            const observerOptions = {
+                root: null, // viewport
+                rootMargin: '100px', // Start loading 100px before element is visible
+                threshold: 0.01 // Trigger when 1% of element is visible
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const container = entry.target;
+                        const identifier = container.getAttribute('data-material-identifier');
+                        const material = materialsToLoad.find(m => m.identifier === identifier);
+
+                        if (material) {
+                            // Stop observing this element
+                            observer.unobserve(container);
+
+                            // Load the material (respecting concurrent load limit)
+                            if (concurrentLoads < maxConcurrentLoads) {
+                                loadMaterial(material);
+                            } else {
+                                pendingLoads.push(material);
+                            }
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all media containers
+            materialsToLoad.forEach(material => {
+                const mediaContainer = document.getElementById(`flow-media-embed-${material.identifier}`);
+                if (mediaContainer) {
+                    // Add data attribute for identification
+                    mediaContainer.setAttribute('data-material-identifier', material.identifier);
+                    observer.observe(mediaContainer);
+                }
+            });
+
+            // Fallback: Load first few materials immediately (visible ones)
+            const initialLoadCount = Math.min(maxConcurrentLoads, materialsToLoad.length);
+            for (let i = 0; i < initialLoadCount; i++) {
+                const material = materialsToLoad[i];
+                const mediaContainer = document.getElementById(`flow-media-embed-${material.identifier}`);
+                if (mediaContainer) {
+                    // Check if element is likely visible (rough check)
+                    const rect = mediaContainer.getBoundingClientRect();
+                    const isVisible = rect.top < window.innerHeight + 100;
+                    if (isVisible) {
+                        loadMaterial(material);
+                    }
+                }
+            }
+        } else {
+            // Fallback for browsers without Intersection Observer
+            // Load materials with delay, but limit concurrent loads
+            for (let i = 0; i < materialsToLoad.length; i++) {
+                const material = materialsToLoad[i];
+                setTimeout(() => {
+                    if (concurrentLoads < maxConcurrentLoads) {
+                        loadMaterial(material);
+                    } else {
+                        pendingLoads.push(material);
+                    }
+                }, i * 300); // 300ms delay between each material
+            }
+        }
+    }
+
+    /**
+     * Setup document type filter functionality (using coverage badges)
+     * @param {Object} flow - Flow object
+     */
+    setupDocumentTypeFilters(flow) {
+        const filterBadges = document.querySelectorAll('.coverage-badge.filter-badge');
+        if (!filterBadges.length) return;
+
+        filterBadges.forEach(badge => {
+            // Only make clickable if it has items (not disabled)
+            const hasItems = badge.classList.contains('has-items') && !badge.classList.contains('disabled');
+            const filterType = badge.getAttribute('data-filter-type');
+
+            if (hasItems) {
+                // Add click handler
+                badge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.applyDocumentTypeFilter(flow, filterType, filterBadges);
+                });
+
+                // Add keyboard support
+                badge.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.applyDocumentTypeFilter(flow, filterType, filterBadges);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Apply document type filter
+     * @param {Object} flow - Flow object
+     * @param {string} filterType - Document type to filter by, or 'all' for all materials
+     * @param {NodeList} filterBadges - All filter badge elements
+     */
+    applyDocumentTypeFilter(flow, filterType, filterBadges) {
+        // Update active state
+        filterBadges.forEach(badge => badge.classList.remove('active'));
+        const activeBadge = Array.from(filterBadges).find(badge => badge.getAttribute('data-filter-type') === filterType);
+        if (activeBadge) {
+            activeBadge.classList.add('active');
+        }
+
+        // Filter materials
+        const materialItems = document.querySelectorAll('.material-narrative-item');
+        materialItems.forEach(item => {
+            if (filterType === 'all') {
+                // Show all materials
+                item.style.display = '';
+            } else {
+                // Show only materials matching the selected document type
+                const materialId = item.getAttribute('data-material-id');
+                const material = flow.materials.find(m => m.identifier === materialId);
+                if (material && material.documentType === filterType) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            }
+        });
+    }
 }
 
 // Initialize and expose globally
-window.modalManager = new ModalManager(stateManager, eventManager);
+window.modalManager = new ModalManager(window.stateManager || null, window.eventManager || null);
 
 // Set up global reference to demoApp when it's available
 document.addEventListener('DOMContentLoaded', () => {

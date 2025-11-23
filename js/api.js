@@ -9,61 +9,138 @@ class InternetArchiveAPI {
     }
 
     async search(query, filters = {}) {
+        // Store filters for pagination
+        this._lastFilters = filters;
+
         try {
-            // Build the search query
+            const trimmedQuery = query ? query.trim() : '';
             const searchQuery = this.buildSearchQuery(query, filters);
 
-
-            // For full-text search, use comprehensive search to get more results
-            const searchType = filters.searchType || 'metadata';
-
-            let allResults;
-
-            if (searchType === 'fulltext' || searchType === 'both') {
-                // Use comprehensive search for full-text and both modes to get more results
-                allResults = await this.getComprehensiveFullTextResults(query, filters);
-                this.allSearchResults = allResults;
-                this.lastApiResponse = { response: { numFound: allResults.length } };
-            } else {
-                // For metadata search, use standard parameters
-                const allResultsParams = new URLSearchParams({
-                    q: searchQuery,
-                    output: 'json',
-                    rows: '1000', // Standard limit for metadata search
-                    sort: 'date desc'
-                });
-
-                const response = await fetch(`${this.baseURL}?${allResultsParams}`);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // Store the API response for total count access
-                this.lastApiResponse = data;
-
-                if (!data.response || !data.response.docs) {
-                    this.allSearchResults = [];
-                    this.lastSearchResults = [];
-                    return [];
-                }
-
-                // Transform all results
-                allResults = this.transformResults(data.response.docs);
-                this.allSearchResults = allResults;
+            // Validate query - ensure it's not empty
+            if (!searchQuery || searchQuery.trim() === '') {
+                console.warn('[InternetArchiveAPI] Empty search query, using wildcard');
+                // For empty queries, use a wildcard that matches all items
+                const finalQuery = (filters.searchScope === 'collection' && window.PROJECT_CONFIG && window.PROJECT_CONFIG.collectionId)
+                    ? `collection:${window.PROJECT_CONFIG.collectionId}`
+                    : '*';
+                return this._performSearchWithQuery(finalQuery, filters);
             }
 
+            return this._performSearchWithQuery(searchQuery, filters);
+
+        } catch (error) {
+            console.error('[InternetArchiveAPI] Error fetching from Internet Archive:', error);
+            console.error('[InternetArchiveAPI] Error details:', {
+                message: error.message,
+                stack: error.stack,
+                query: query,
+                filters: filters
+            });
+            this.allSearchResults = [];
+            this.lastSearchResults = [];
+            return [];
+        }
+    }
+
+    async _performSearchWithQuery(searchQuery, filters = {}) {
+        try {
+            // Build API request
+            const buildParamsStart = performance.now();
+            // For "Entire Archive" searches, use a smaller row limit to avoid connection resets
+            // For collection searches, we can use more rows since the collection is smaller
+            const maxRows = filters.searchScope === 'all' ? '1000' : '10000';
+
+            const allResultsParams = new URLSearchParams({
+                q: searchQuery,
+                output: 'json',
+                rows: maxRows, // Adjust based on search scope
+                sort: 'date desc'
+            });
+            const apiUrl = `${this.baseURL}?${allResultsParams}`;
+
+            let response;
+            try {
+                // Create AbortController for timeout (AbortSignal.timeout may not be available in all browsers)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+                response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+            } catch (fetchError) {
+                console.error('[InternetArchiveAPI] Fetch error:', fetchError);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timeout: The Internet Archive API took too long to respond.');
+                } else if (fetchError.name === 'TypeError' && (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('ERR_NAME_NOT_RESOLVED') || fetchError.message.includes('ERR_CONNECTION_RESET'))) {
+                    // Provide specific guidance for connection resets
+                    if (fetchError.message.includes('ERR_CONNECTION_RESET') || fetchError.message.includes('Connection reset')) {
+                        const collectionName = (window.PROJECT_CONFIG && window.PROJECT_CONFIG.projectName) ? window.PROJECT_CONFIG.projectName + ' Collection' : 'Collection';
+                        throw new Error(`Connection reset: The Internet Archive API response was too large. Try narrowing your search terms or using the ${collectionName} scope for more targeted results.`);
+                    }
+
+                    throw new Error('Network error: Unable to reach the Internet Archive API. Please check your internet connection and try again.');
+                }
+                throw fetchError;
+            }
+
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => 'Unable to read error response');
+                console.error('[InternetArchiveAPI] HTTP error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}`);
+            }
+
+            let data;
+            try {
+                // Read response as text first to handle potential connection resets
+                const responseText = await response.text();
+
+                if (!responseText || responseText.trim() === '') {
+                    throw new Error('Empty response from Internet Archive API');
+                }
+
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('[InternetArchiveAPI] JSON parse error:', parseError);
+
+                // If it's a connection reset or incomplete JSON, provide helpful message
+                if (parseError.message.includes('Unexpected end') || parseError.message.includes('JSON') || parseError.message.includes('incomplete')) {
+                    const collectionName = (window.PROJECT_CONFIG && window.PROJECT_CONFIG.projectName) ? window.PROJECT_CONFIG.projectName + ' Collection' : 'Collection';
+                    throw new Error(`The Internet Archive API response was incomplete. This may happen with very large result sets. Try narrowing your search or using the ${collectionName} scope.`);
+                }
+
+                throw new Error(`Failed to parse API response: ${parseError.message}`);
+            }
+
+            // Store the API response for total count access
+            this.lastApiResponse = data;
+
+            if (!data.response || !data.response.docs) {
+                console.warn('[InternetArchiveAPI] No results in API response');
+                this.allSearchResults = [];
+                this.lastSearchResults = [];
+                return [];
+            }
+
+            // Transform all results
+            const allResults = this.transformResults(data.response.docs);
+            this.allSearchResults = allResults;
+
             // Apply client-side pagination
-            const resultsPerPage = filters.resultsPerPage || 6;
+            const resultsPerPage = filters.resultsPerPage === 'all' || filters.resultsPerPage === Number.MAX_SAFE_INTEGER
+                ? Number.MAX_SAFE_INTEGER
+                : (filters.resultsPerPage || 4);
             const page = filters.page || 1;
             const startIndex = (page - 1) * resultsPerPage;
             const endIndex = startIndex + resultsPerPage;
             const paginatedResults = allResults.slice(startIndex, endIndex);
 
             this.lastSearchResults = paginatedResults; // Store current page results
-
 
             return paginatedResults;
 
@@ -96,95 +173,54 @@ class InternetArchiveAPI {
     }
 
     buildSearchQuery(query, filters) {
-        let searchQuery = query;
+        const trimmedQuery = query ? query.trim() : '';
+        const isEmptyQuery = !trimmedQuery;
+        let searchQuery = '';
 
-        // Handle search type (metadata, fulltext, both)
-        const searchType = filters.searchType || 'metadata';
+        // Add collection constraint if searching collection scope
+        if (filters.searchScope === 'collection' && window.PROJECT_CONFIG && window.PROJECT_CONFIG.collectionId) {
+            searchQuery = `collection:${window.PROJECT_CONFIG.collectionId}`;
+        }
 
-        if (searchType === 'fulltext') {
-            // For full-text search, we want to search within the actual OCR'd text content
-            // Internet Archive's full-text search searches within document text content
-            // We'll use the text field to search within OCR'd content
-            searchQuery = `text:(${query})`;
-
-            // For full-text search, we should NOT add collection constraints
-            // as this limits the search scope and prevents finding content within documents
-            // Only add basic filters that don't restrict the search scope
-
-            // Add filters to the search query (but not collection constraints)
-            if (filters.documentType) {
-                searchQuery += ` AND mediatype:${filters.documentType}`;
-            }
-
-            if (filters.dateStart || filters.dateEnd) {
-                const startDate = filters.dateStart || '*';
-                const endDate = filters.dateEnd || '*';
-                searchQuery += ` AND date:[${startDate} TO ${endDate}]`;
-            }
-
-            if (filters.language) {
-                searchQuery += ` AND language:${filters.language}`;
-            }
-
-            return searchQuery;
-
-        } else if (searchType === 'both') {
-            // For both metadata and full-text, we'll search both
-            // This combines metadata search with full-text search
+        // Add text search if provided
+        if (!isEmptyQuery) {
+            // Search in title, description, creator, and subject fields
             const metadataFields = [
-                `title:(${query})`,
-                `description:(${query})`,
-                `creator:(${query})`,
-                `subject:(${query})`,
-                `collection:(${query})`
+                `title:(${trimmedQuery})`,
+                `description:(${trimmedQuery})`,
+                `creator:(${trimmedQuery})`,
+                `subject:(${trimmedQuery})`
             ];
-            const metadataSearch = `(${metadataFields.join(' OR ')})`;
-            const fullTextSearch = `text:(${query})`;
-            searchQuery = `(${metadataSearch} OR ${fullTextSearch})`;
-        } else {
-            // For metadata-only search, we can be more specific about which fields to search
-            // This searches title, description, creator, subject, etc.
-            // We'll use field-specific searches for better metadata targeting
-            const metadataFields = [
-                `title:(${query})`,
-                `description:(${query})`,
-                `creator:(${query})`,
-                `subject:(${query})`,
-                `collection:(${query})`
-            ];
-            searchQuery = `(${metadataFields.join(' OR ')})`;
-        }
+            const textSearch = `(${metadataFields.join(' OR ')})`;
 
-        // Add collection constraints based on active custom filters
-        if (window.filterManager && filters.searchScope !== 'all') {
-            const activeFilters = window.filterManager.getActiveFilters();
-
-            if (activeFilters.length > 0) {
-                // For regular filters, use standard search constraints
-                const filterConstraints = activeFilters.map(f => f.searchConstraint).join(' OR ');
-                searchQuery += ` AND (${filterConstraints})`;
+            if (searchQuery) {
+                searchQuery += ` AND ${textSearch}`;
+            } else {
+                searchQuery = textSearch;
             }
         }
-        // For 'all' scope, don't add any collection constraints
-        // This allows searching the entire Internet Archive without restrictions
 
-        // Add filters to the search query
-        if (filters.documentType) {
-            searchQuery += ` AND mediatype:${filters.documentType}`;
-        }
+        // Document type filter is now applied client-side, not in API query
+        // This allows users to switch document types without re-searching
 
+        // Add date filters
         if (filters.dateStart || filters.dateEnd) {
             const startDate = filters.dateStart || '*';
             const endDate = filters.dateEnd || '*';
-            searchQuery += ` AND date:[${startDate} TO ${endDate}]`;
+            if (searchQuery) {
+                searchQuery += ` AND date:[${startDate} TO ${endDate}]`;
+            } else {
+                searchQuery = `date:[${startDate} TO ${endDate}]`;
+            }
         }
 
-        if (filters.location && filters.searchScope !== 'all') {
-            searchQuery += ` AND coverage:${filters.location}`;
-        }
-
+        // Add language filter
         if (filters.language) {
-            searchQuery += ` AND language:${filters.language}`;
+            if (searchQuery) {
+                searchQuery += ` AND language:${filters.language}`;
+            } else {
+                searchQuery = `language:${filters.language}`;
+            }
         }
 
         return searchQuery;
@@ -207,26 +243,54 @@ class InternetArchiveAPI {
         }
     }
 
+    /**
+     * Normalize description field - handle arrays and convert to string with preserved line breaks
+     * @param {string|Array|undefined} description - Description from API (can be string, array, or undefined)
+     * @returns {string} Normalized description string
+     */
+    normalizeDescription(description) {
+        if (!description) {
+            return '';
+        }
+
+        // If it's an array, join with newlines to preserve paragraph breaks
+        if (Array.isArray(description)) {
+            return description.filter(item => item != null).join('\n');
+        }
+
+        // If it's already a string, return as-is
+        if (typeof description === 'string') {
+            return description;
+        }
+
+        // Fallback: convert to string
+        return String(description);
+    }
+
     transformResults(docs) {
         // Filter out null/undefined docs first
         return docs
             .filter(doc => doc && typeof doc === 'object' && doc.identifier)
-            .map(doc => ({
-                identifier: doc.identifier,
-                title: doc.title || doc.name || 'Untitled',
-                description: doc.description || doc.summary || doc.notes || '',
-                creator: doc.creator || doc.uploader || doc.contributor || 'Unknown',
-                date: doc.date || doc.publicdate || doc.year || 'Unknown date',
-                language: doc.language || 'en',
-                type: doc.mediatype || 'unknown',
-                url: `https://archive.org/details/${doc.identifier}`,
-                thumbnail: doc.thumbnail || null,
-                downloadUrl: doc.downloadUrl || null,
-                fileCount: doc.filecount || 0,
-                size: doc.size || 0,
-                text: doc.text || null, // Include text content for full-text search
-                metadata: doc
-            }));
+            .map(doc => {
+
+                return {
+                    identifier: doc.identifier,
+                    title: doc.title || doc.name || 'Untitled',
+                    description: this.normalizeDescription(doc.description || doc.summary || doc.notes || ''),
+                    creator: doc.creator || doc.uploader || doc.contributor || 'Unknown',
+                    uploader: doc.uploader || null,
+                    date: doc.date || doc.publicdate || doc.year || 'Unknown date',
+                    language: doc.language || 'en',
+                    type: doc.mediatype || 'unknown',
+                    url: `https://archive.org/details/${doc.identifier}`,
+                    thumbnail: doc.thumbnail || null,
+                    downloadUrl: doc.downloadUrl || null,
+                    fileCount: doc.filecount || 0,
+                    size: doc.size || 0,
+                    text: doc.text || null, // Include text content for full-text search
+                    metadata: doc
+                };
+            });
     }
 
     transformItem(data) {
@@ -239,8 +303,9 @@ class InternetArchiveAPI {
         return {
             identifier: metadata.identifier,
             title: metadata.title || 'Untitled',
-            description: metadata.description || metadata.summary || metadata.notes || '',
+            description: this.normalizeDescription(metadata.description || metadata.summary || metadata.notes || ''),
             creator: metadata.creator || metadata.uploader || metadata.contributor || 'Unknown',
+            uploader: metadata.uploader || null,
             date: metadata.date || metadata.publicdate || metadata.year || 'Unknown date',
             language: metadata.language || 'en',
             type: metadata.mediatype || 'unknown',
@@ -702,6 +767,278 @@ class InternetArchiveAPI {
     }
 
 
+    // Get comprehensive metadata search results (for browse all items)
+    async getComprehensiveMetadataResults(filters = {}) {
+        try {
+            const activeFilters = window.filterManager ? window.filterManager.getActiveFilters() : [];
+
+            // If we have multiple filters, try searching each separately and combining results
+            // This can sometimes return more results than a single combined OR query
+            if (activeFilters.length > 1) {
+                return await this.getComprehensiveMetadataResultsPerFilter(filters, activeFilters);
+            }
+
+            const searchQuery = this.buildSearchQuery('', filters);
+
+            const allResults = [];
+            let totalCount = 0;
+            const maxRequests = 20; // Make up to 20 requests to get more results (up to 20,000 items)
+            const rowsPerRequest = 1000; // Internet Archive API limit per request
+
+            for (let i = 0; i < maxRequests; i++) {
+                const start = i * rowsPerRequest;
+
+                const params = new URLSearchParams({
+                    q: searchQuery,
+                    output: 'json',
+                    rows: rowsPerRequest.toString(),
+                    start: start.toString(),
+                    sort: 'date desc',
+                    fl: 'identifier,title,description,creator,date,mediatype,language,downloads,publicdate,collection,subject,uploader,filecount,size,thumbnail'
+                });
+
+                const response = await fetch(`${this.baseURL}?${params}`);
+
+                if (!response.ok) {
+                    break;
+                }
+
+                const data = await response.json();
+
+                if (!data.response || !data.response.docs || data.response.docs.length === 0) {
+                    break;
+                }
+
+                // Capture total count from first request
+                if (i === 0 && data.response.numFound) {
+                    totalCount = data.response.numFound;
+                }
+
+                const transformedResults = this.transformResults(data.response.docs);
+                allResults.push(...transformedResults);
+
+                // If we got fewer results than requested, we've reached the end
+                if (data.response.docs.length < rowsPerRequest) {
+                    break;
+                }
+
+                // Small delay between requests to be respectful to the API
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+
+            return {
+                results: allResults,
+                totalCount: totalCount || allResults.length
+            };
+
+        } catch (error) {
+            console.error('Error in comprehensive metadata search:', error);
+            return { results: [], totalCount: 0 };
+        }
+    }
+
+    // Get comprehensive metadata search results by searching each filter separately
+    async getComprehensiveMetadataResultsPerFilter(filters = {}, activeFilters = []) {
+        try {
+
+            const allResults = [];
+            const seenIdentifiers = new Set();
+            let totalCount = 0;
+            const maxRequestsPerFilter = 20;
+            const rowsPerRequest = 1000;
+
+            // Helper function to search a single filter (returns results, doesn't modify shared state)
+            const searchSingleFilter = async (filter, filterIndex) => {
+
+                // Local results for this filter only
+                const filterResults = [];
+                const filterSeenIdentifiers = new Set();
+
+                // Optimized: Search uploader and collection fields, with fallback to plain text
+                // Extract the username/identifier from the filter
+                const identifier = filter.identifier;
+                let queriesToTry = [];
+
+                if (identifier && filter.type === 'smart') {
+                    // Primary: Use only the most effective query method first
+                    // Based on testing: uploader:"identifier" is the recommended and most reliable format
+                    // Try this first, and only use fallbacks if it returns 0 results
+                    queriesToTry = [
+                        `uploader:"${identifier}"` // Primary: Quoted username (recommended format - this works!)
+                    ];
+                } else {
+                    // For non-smart filters, use the original constraint
+                    queriesToTry = [filter.searchConstraint];
+                }
+
+                // Helper function to fetch all pages for a query
+                const fetchAllPagesForQuery = async (query, queryName) => {
+                    const queryResults = [];
+                    for (let i = 0; i < maxRequestsPerFilter; i++) {
+                        const start = i * rowsPerRequest;
+
+                        const params = new URLSearchParams({
+                            q: query,
+                            output: 'json',
+                            rows: rowsPerRequest.toString(),
+                            start: start.toString(),
+                            sort: 'date desc',
+                            fl: 'identifier,title,description,creator,date,mediatype,language,downloads,publicdate,collection,subject,uploader,filecount,size,thumbnail'
+                        });
+
+                        const response = await fetch(`${this.baseURL}?${params}`);
+
+                        if (!response.ok) {
+                            break;
+                        }
+
+                        const data = await response.json();
+
+                        if (!data.response || !data.response.docs || data.response.docs.length === 0) {
+                            break;
+                        }
+
+                        const transformedResults = this.transformResults(data.response.docs);
+                        queryResults.push(...transformedResults);
+
+                        if (data.response.docs.length < rowsPerRequest) {
+                            break;
+                        }
+
+                        // Reduced delay for faster performance (50ms instead of 100ms)
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                    }
+                    return queryResults;
+                };
+
+                // Try primary query first - if it works, skip all fallbacks
+                const primaryQuery = queriesToTry[0];
+                const primaryResults = await fetchAllPagesForQuery(primaryQuery, 'Primary query');
+
+                // Add only unique results (by identifier) to this filter's results
+                let newItems = 0;
+                for (const result of primaryResults) {
+                    if (!filterSeenIdentifiers.has(result.identifier)) {
+                        filterSeenIdentifiers.add(result.identifier);
+                        filterResults.push(result);
+                        newItems++;
+                    }
+                }
+
+                const foundResults = newItems > 0;
+
+                // For smart filters, try additional query strategies
+                if (identifier && filter.type === 'smart') {
+                    // Fallback: If primary query returned 0 results, try minimal fallback queries
+                    // Only try these if the primary uploader query failed
+                    if (!foundResults) {
+                        // Minimal fallback set: try unquoted uploader, then creator, then subject
+                        const fallbackQueries = [
+                            `uploader:${identifier}`, // Unquoted uploader (in case quotes cause issues)
+                            `creator:"${identifier}"`, // Creator field
+                            `subject:${identifier}` // Subject field
+                        ];
+
+                        // Run fallback queries in parallel
+                        const fallbackPromises = fallbackQueries.map(async (fallbackQuery, fallbackIndex) => {
+                            const queryResults = [];
+                            for (let i = 0; i < maxRequestsPerFilter; i++) {
+                                const start = i * rowsPerRequest;
+
+                                const params = new URLSearchParams({
+                                    q: fallbackQuery,
+                                    output: 'json',
+                                    rows: rowsPerRequest.toString(),
+                                    start: start.toString(),
+                                    sort: 'date desc',
+                                    fl: 'identifier,title,description,creator,date,mediatype,language,downloads,publicdate,collection,subject,uploader,filecount,size,thumbnail'
+                                });
+
+                                const response = await fetch(`${this.baseURL}?${params}`);
+
+                                if (!response.ok) {
+                                    break;
+                                }
+
+                                const data = await response.json();
+
+                                if (!data.response || !data.response.docs || data.response.docs.length === 0) {
+                                    break;
+                                }
+
+                                const transformedResults = this.transformResults(data.response.docs);
+                                queryResults.push(...transformedResults);
+
+                                if (data.response.docs.length < rowsPerRequest) {
+                                    break;
+                                }
+
+                                // Reduced delay (50ms instead of 100ms)
+                                await new Promise(resolve => setTimeout(resolve, 50));
+                            }
+                            return { query: fallbackQuery, results: queryResults };
+                        });
+
+                        const fallbackResults = await Promise.all(fallbackPromises);
+
+                        // Merge all fallback results into this filter's results
+                        for (const { query, results } of fallbackResults) {
+                            for (const result of results) {
+                                if (!filterSeenIdentifiers.has(result.identifier)) {
+                                    filterSeenIdentifiers.add(result.identifier);
+                                    filterResults.push(result);
+                                }
+                            }
+                        }
+                    }
+
+                    // Only try plain text search if we still have 0 results after all field queries
+                    if (filterResults.length === 0) {
+                        const plainTextQuery = identifier;
+                        const queryResults = await fetchAllPagesForQuery(plainTextQuery, `Plain text search`);
+
+                        // Add only unique results (by identifier) to this filter's results
+                        for (const result of queryResults) {
+                            if (!filterSeenIdentifiers.has(result.identifier)) {
+                                filterSeenIdentifiers.add(result.identifier);
+                                filterResults.push(result);
+                            }
+                        }
+                    }
+                }
+
+                // Return results for this filter
+                return filterResults;
+            };
+
+            // Search all filters in parallel instead of sequentially
+            const filterSearchPromises = activeFilters.map((filter, index) =>
+                searchSingleFilter(filter, index)
+            );
+
+            const allFilterResults = await Promise.all(filterSearchPromises);
+
+            // Merge all filter results, removing duplicates
+            for (const filterResults of allFilterResults) {
+                for (const result of filterResults) {
+                    if (!seenIdentifiers.has(result.identifier)) {
+                        seenIdentifiers.add(result.identifier);
+                        allResults.push(result);
+                    }
+                }
+            }
+
+            return {
+                results: allResults,
+                totalCount: allResults.length // Use actual unique count
+            };
+
+        } catch (error) {
+            console.error('Error in per-filter comprehensive metadata search:', error);
+            return { results: [], totalCount: 0 };
+        }
+    }
+
     // Get comprehensive full-text search results
     async getComprehensiveFullTextResults(query, filters = {}) {
         try {
@@ -732,7 +1069,6 @@ class InternetArchiveAPI {
                 const data = await response.json();
 
                 if (!data.response || !data.response.docs || data.response.docs.length === 0) {
-                    // Debug logging removed
                     break;
                 }
 
@@ -742,7 +1078,6 @@ class InternetArchiveAPI {
 
                 // If we got fewer results than requested, we've reached the end
                 if (data.response.docs.length < rowsPerRequest) {
-                    // Debug logging removed
                     break;
                 }
 

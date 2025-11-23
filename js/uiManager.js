@@ -112,32 +112,21 @@ class UIManager {
      */
     setupSearchScopeToggle() {
         const searchScopeInputs = Utils.DOM.getElements('input[name="search-scope"]');
-        const filterManagement = document.getElementById('filter-management');
 
         searchScopeInputs.forEach(input => {
             input.addEventListener('change', () => {
                 this.app.updateSearchNote();
-                this.toggleFilterManagement();
+                // Update browse button visibility when scope changes
+                if (window.searchManager && window.searchManager.updateBrowseButtonVisibility) {
+                    window.searchManager.updateBrowseButtonVisibility();
+                }
             });
         });
 
         this.app.updateSearchNote();
-        this.toggleFilterManagement();
-    }
-
-    /**
-     * Toggle filter management visibility based on search scope
-     */
-    toggleFilterManagement() {
-        const searchScope = document.querySelector('input[name="search-scope"]:checked')?.value || 'filters';
-        const filterManagement = document.getElementById('filter-management');
-
-        if (filterManagement) {
-            if (searchScope === 'all') {
-                filterManagement.style.display = 'none';
-            } else {
-                filterManagement.style.display = 'block';
-            }
+        // Update browse button visibility on initial setup
+        if (window.searchManager && window.searchManager.updateBrowseButtonVisibility) {
+            window.searchManager.updateBrowseButtonVisibility();
         }
     }
 
@@ -177,7 +166,13 @@ class UIManager {
         document.addEventListener('change', (event) => {
             if (event.target.classList.contains('material-doc-type')) {
                 const identifier = event.target.closest('[data-identifier]')?.dataset.identifier;
-                // Debug logging removed
+                if (identifier && this.app.materials && typeof this.app.materials.setDraft === 'function') {
+                    // Sync document type change to draft state
+                    const app = this.app;
+                    if (app && app.editingFlow && app.materials.hasDraft()) {
+                        app.materials.setDraft(identifier, 'documentType', event.target.value);
+                    }
+                }
                 debouncedUpdateCoverage();
             }
         });
@@ -185,7 +180,6 @@ class UIManager {
         // Setup notes change listeners with throttling
         const throttledNotesUpdate = (identifier) => {
             if (!this.notesUpdateTimeout) {
-                // Debug logging removed
                 this.notesUpdateTimeout = setTimeout(() => {
                     this.notesUpdateTimeout = null;
                 }, 1000);
@@ -262,7 +256,6 @@ class UIManager {
         // Reset body overflow
         document.body.style.overflow = 'auto';
 
-        // Debug logging removed
     }
 
     /**

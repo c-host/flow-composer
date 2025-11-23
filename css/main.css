@@ -86,6 +86,7 @@
     --spacing-10: 2.5rem;
     --spacing-12: 3rem;
     --spacing-16: 4rem;
+    --spacing-20: 5.25rem;
 
     /* Border radius */
     --radius-sm: 0.25rem;
@@ -113,6 +114,9 @@
     --text-primary: var(--gray-800);
     --text-secondary: var(--gray-600);
     --border-primary: var(--gray-200);
+
+    /* Link color - distinct from text for visibility (darker than text-primary) */
+    --link-color: var(--gray-900);
 
     /* Inputs, chips, overlay, focus */
     --input-bg: var(--surface-3);
@@ -171,6 +175,9 @@
     --text-primary: var(--text-primary);
     --text-secondary: var(--text-secondary);
     --border-primary: var(--border-primary);
+
+    /* Link color - distinct from text for visibility (lighter gray, clearly different from white) */
+    --link-color: var(--gray-300);
 
     /* Inputs, chips, overlay, focus for dark */
     --input-bg: var(--surface-3);
@@ -483,6 +490,16 @@ a:hover {
 
 [data-theme="dark"] .btn-secondary:hover {
     background-color: var(--surface-2);
+}
+
+/* Dark theme for Browse All button in search form row */
+[data-theme="dark"] .search-form-row .btn-secondary {
+    background-color: var(--primary-color);
+    color: var(--surface-3);
+}
+
+[data-theme="dark"] .search-form-row .btn-secondary:hover {
+    background-color: var(--primary-600);
 }
 
 .btn-sm {

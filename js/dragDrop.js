@@ -11,6 +11,7 @@ class DragDropManager {
         this.dragGhost = null;
         this.isInitialized = false;
         this.lastMaterialCount = 0;
+        this.dragDropAbortController = null; // For cleaning up event listeners
     }
 
     /**
@@ -36,7 +37,7 @@ class DragDropManager {
 
 
         if (!container) {
-            console.error('❌ Materials assignment container not found');
+            console.error('Materials assignment container not found');
             console.error('🔍 Available elements with similar IDs:');
             document.querySelectorAll('[id*="materials"]').forEach(el => {
                 console.error('  -', el.id, el.tagName, el.className);
@@ -54,36 +55,44 @@ class DragDropManager {
         // Mark as initialized
         this.isInitialized = true;
 
-        // Clear existing event listeners by cloning and replacing the container
-        // Use requestAnimationFrame to batch DOM operations and prevent forced reflows
+        // CRITICAL FIX: Use event delegation instead of cloning container
+        // Cloning destroys Quill instances! Instead, remove old listeners and add new ones
+        // Use requestAnimationFrame to batch DOM operations
         requestAnimationFrame(() => {
             // Don't re-initialize if drag is in progress
             if (this.draggedIdentifier) {
                 return;
             }
 
-            // Store current drag state before DOM manipulation
-            const currentDragState = this.draggedIdentifier;
+            // Remove old event listeners if they exist (using AbortController for clean removal)
+            if (this.dragDropAbortController) {
+                this.dragDropAbortController.abort();
+            }
+            this.dragDropAbortController = new AbortController();
+            const signal = this.dragDropAbortController.signal;
 
-            const newContainer = container.cloneNode(true);
-            container.parentNode.replaceChild(newContainer, container);
-            container = newContainer;
+            // Use event delegation on the container for drag events
+            // This way we don't need to attach listeners to individual elements
+            container.addEventListener('dragover', this.handleDragOver.bind(this), { signal });
+            container.addEventListener('drop', this.handleDrop.bind(this), { signal });
 
-            // Restore drag state after DOM manipulation
-            this.draggedIdentifier = currentDragState;
+            // Use event delegation for dragstart and dragend on drag handles
+            // The drag handle has draggable="true", so the browser will make it draggable
+            container.addEventListener('dragstart', (e) => {
+                // Only handle if the drag started on or inside a drag handle
+                const dragHandle = e.target.closest('.material-drag-handle');
+                if (dragHandle && dragHandle.hasAttribute('draggable')) {
+                    this.handleDragStart(e);
+                }
+            }, { signal });
 
-            // Add new event listeners
-            container.addEventListener('dragover', this.handleDragOver.bind(this));
-            container.addEventListener('drop', this.handleDrop.bind(this));
-
-            // Setup drag handles for each material
-            const dragHandles = container.querySelectorAll('.material-drag-handle');
-
-            dragHandles.forEach(handle => {
-                // Add new listeners with proper binding
-                handle.addEventListener('dragstart', this.handleDragStart.bind(this));
-                handle.addEventListener('dragend', this.handleDragEnd.bind(this));
-            });
+            container.addEventListener('dragend', (e) => {
+                // Only handle if the drag ended on or inside a drag handle
+                const dragHandle = e.target.closest('.material-drag-handle');
+                if (dragHandle && dragHandle.hasAttribute('draggable')) {
+                    this.handleDragEnd(e);
+                }
+            }, { signal });
         });
     }
 
@@ -91,6 +100,12 @@ class DragDropManager {
      * Handle drag start
      */
     handleDragStart(event) {
+        // Prevent drag if clicking on Quill editor elements
+        const quillElement = event.target.closest('.material-notes-editor, .ql-toolbar, .ql-container, .ql-editor');
+        if (quillElement) {
+            event.preventDefault();
+            return;
+        }
 
         // Prevent multiple drag starts
         if (this.draggedIdentifier) {
@@ -99,12 +114,13 @@ class DragDropManager {
 
         const materialItem = event.target.closest('.material-assignment-item');
         if (!materialItem) {
-            console.error('❌ No material item found for drag start');
+            console.error('No material item found for drag start');
             return;
         }
 
         // Store the dragged element identifier
         this.draggedIdentifier = materialItem.dataset.identifier;
+
 
         // Set drag data
         event.dataTransfer.effectAllowed = 'move';
@@ -112,6 +128,18 @@ class DragDropManager {
 
         // Add visual feedback
         materialItem.classList.add('dragging');
+
+        // Log CSS state of Quill elements - use getElementById to find the actual editor
+        const materialId = materialItem.dataset.identifier;
+        const quillEditor = document.getElementById(`quill-editor-${materialId}`);
+
+        if (quillEditor) {
+            // Quill creates its own structure inside the editor element
+            const toolbar = quillEditor.querySelector('.ql-toolbar');
+            const container = quillEditor.querySelector('.ql-container');
+            const editor = quillEditor.querySelector('.ql-editor');
+
+        }
 
         // Create a semi-transparent clone for visual feedback
         const rect = materialItem.getBoundingClientRect();
@@ -139,7 +167,6 @@ class DragDropManager {
         const draggedElement = container.querySelector(`[data-identifier="${this.draggedIdentifier}"]`);
 
         if (!draggedElement || !this.draggedIdentifier) {
-            // Debug logging removed
             return;
         }
 
@@ -174,7 +201,7 @@ class DragDropManager {
         event.preventDefault();
 
         if (!this.draggedIdentifier) {
-            console.error('❌ No dragged identifier found for drop');
+            console.error('No dragged identifier found for drop');
             return;
         }
 
@@ -182,7 +209,7 @@ class DragDropManager {
         const draggedElement = container.querySelector(`[data-identifier="${this.draggedIdentifier}"]`);
 
         if (!draggedElement) {
-            console.error('❌ Dragged element not found in container');
+            console.error('Dragged element not found in container');
             return;
         }
 
@@ -200,7 +227,6 @@ class DragDropManager {
         }
 
         // Update the data model
-        // Debug logging removed
         this.updateMaterialsOrder();
 
         // Update document type coverage
@@ -208,14 +234,12 @@ class DragDropManager {
 
         // Clean up
         this.draggedIdentifier = null;
-        // Debug logging removed
     }
 
     /**
      * Handle drag end
      */
     handleDragEnd(event) {
-
         // Remove visual feedback
         const materialItem = event.target.closest('.material-assignment-item');
         if (materialItem) {
@@ -245,42 +269,50 @@ class DragDropManager {
 
     /**
      * Get element after which to insert dragged element
+     * Returns the element that should come after the dragged element (i.e., insert before this element)
      */
     getDragAfterElement(container, y) {
         const draggableElements = [...container.querySelectorAll('.material-assignment-item:not(.dragging)')];
 
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
+        if (draggableElements.length === 0) {
+            return null;
+        }
 
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
+        // Find the element that should come after the insertion point
+        // We iterate through elements and find where the cursor position falls
+        for (let i = 0; i < draggableElements.length; i++) {
+            const child = draggableElements[i];
+            const box = child.getBoundingClientRect();
+            const centerY = box.top + box.height / 2;
+
+            // If cursor is above the center of this element, insert before it
+            if (y < centerY) {
+                return child;
             }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // If cursor is below all elements, return null to append at end
+        return null;
     }
 
     /**
      * Update materials order in data model
      */
     updateMaterialsOrder() {
-        // Debug logging removed
         const container = document.querySelector('#materials-assignment-list');
         if (!container) {
-            console.error('❌ Container not found for updating materials order');
+            console.error('Container not found for updating materials order');
             return;
         }
 
         const materialItems = container.querySelectorAll('.material-assignment-item');
-        // Debug logging removed
 
         const newOrder = [];
 
         // Get selectedMaterials from the app instance
         const app = this.getAppInstance();
         if (!app) {
-            console.error('❌ App instance not available for updating materials order');
+            console.error('App instance not available for updating materials order');
             return;
         }
 
@@ -291,12 +323,12 @@ class DragDropManager {
         } else if (app.selectedMaterials && Array.isArray(app.selectedMaterials)) {
             selectedMaterials = app.selectedMaterials;
         } else {
-            console.error('❌ No selectedMaterials available from material manager or app');
+            console.error('No selectedMaterials available from material manager or app');
             return;
         }
 
         if (!Array.isArray(selectedMaterials)) {
-            console.error('❌ selectedMaterials is not an array:', selectedMaterials);
+            console.error('selectedMaterials is not an array:', selectedMaterials);
             return;
         }
 
@@ -306,12 +338,8 @@ class DragDropManager {
             const material = selectedMaterials.find(m => m.identifier === identifier);
             if (material) {
                 newOrder.push(material);
-                // Debug logging removed
-            } else {
             }
         });
-
-        // Debug logging removed
 
         // Update the material manager's selectedMaterials
         if (app.materials && app.materials.setSelectedMaterials) {
@@ -320,7 +348,6 @@ class DragDropManager {
             // Fallback to app.selectedMaterials if material manager method not available
             app.selectedMaterials = newOrder;
         }
-        // Debug logging removed
     }
 
     /**
@@ -391,7 +418,6 @@ class DragDropManager {
         this.draggedIdentifier = null;
         this.dragGhost = null;
 
-        // Debug logging removed
     }
 
     /**

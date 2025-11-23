@@ -97,6 +97,13 @@ class ImportExportManager {
                 const newFlows = [];
 
                 for (const flow of validFlows) {
+                    // Register imported document types for interoperability
+                    if (flow.documentTypes && Array.isArray(flow.documentTypes)) {
+                        if (window.Utils && window.Utils.DocumentType && window.Utils.DocumentType.registerImportedTypes) {
+                            window.Utils.DocumentType.registerImportedTypes(flow.documentTypes);
+                        }
+                    }
+
                     const newFlow = {
                         ...flow,
                         id: `flow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

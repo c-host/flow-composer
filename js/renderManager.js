@@ -12,7 +12,7 @@ class RenderManager {
      * @returns {Object|null} The app instance or null if not available
      */
     getAppInstance() {
-        return this.app || window.demoApp || null;
+        return this.app || window.demoApp || window.publicApp || null;
     }
 
     /**
@@ -131,32 +131,24 @@ class RenderManager {
      * @returns {string} HTML string
      */
     renderFlowDetails(flow) {
+        // Render immediately with existing data to avoid delay
+        // Descriptions will be enhanced asynchronously if needed
         return `
             <div class="flow-details">
-                <!-- Research Narrative Layout -->
+                <!-- Unified Flow Narrative Layout -->
                 <div class="flow-narrative-layout">
-                    <!-- Left: Research Overview & Document Type Analysis -->
+                    <!-- Document Type Coverage Summary Header (Unified with Filtering) -->
                     <div class="flow-overview-panel">
-                        <!-- Document Type Coverage Analysis -->
                         <div class="coverage-analysis-section">
-                            <h4><i data-feather="bar-chart-2" class="icon-sm"></i> Document Type Coverage</h4>
-                            <p class="coverage-description">Analysis of available archival materials by document type</p>
+                            <h4><i data-feather="bar-chart-2" class="icon-sm"></i> Document Types:</h4>
+                            <p class="filter-instruction">Click a document type to filter materials:</p>
                             <div class="document-type-coverage">
                                 ${this.renderDocumentTypeCoverage(flow)}
                             </div>
                         </div>
-
-                        <!-- Archive Gaps Analysis -->
-                        <div class="gaps-analysis-section">
-                            <h4><i data-feather="search" class="icon-sm"></i> Archive Gaps</h4>
-                            <p class="gaps-description">Document types with limited or no available materials</p>
-                            <div class="gaps-list">
-                                ${this.renderArchiveGaps(flow)}
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Center: Materials Timeline/Narrative -->
+                    <!-- Materials Timeline/Narrative -->
                     <div class="flow-materials-panel">
                         <div class="materials-narrative-header">
                             <h4><i data-feather="book" class="icon-sm"></i> Archival Narrative</h4>
@@ -164,60 +156,8 @@ class RenderManager {
                         </div>
                         
                         <div class="materials-timeline">
-                            ${flow.materials.map((material, index) => `
-                                <div class="material-narrative-item" data-material-id="${material.identifier}" onclick="demoApp.selectMaterialInNarrative('${material.identifier}')">
-                                    <div class="narrative-item-header">
-                                        <div class="narrative-item-number">${index + 1}</div>
-                                        <div class="narrative-item-info">
-                                            <h5 class="material-title">${this.escapeHTML(material.title)}</h5>
-                                            <div class="material-meta">
-                                                <span class="material-doc-type-badge">${this.getDocumentTypeIcon(material.documentType)} ${this.escapeHTML(material.documentType)}</span>
-                                                <span class="material-media-type-badge">${this.getMediaIcon(material.type)} ${this.escapeHTML(material.type)}</span>
-                                            </div>
-                                        </div>
-                                        <div class="narrative-item-actions">
-                                            <button class="btn btn-sm btn-primary" onclick="demoApp.previewMaterialInFlow('${material.identifier}')">
-                                                Preview
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="narrative-item-content">
-                                        <div class="material-preview-narrative">
-                                            ${material.thumbnail ?
-                `<img src="${this.escapeHTML(material.thumbnail)}" alt="${this.escapeHTML(material.title)}" onclick="demoApp.previewMaterialInFlow('${material.identifier}')" style="cursor: pointer;">` :
-                ''
-            }
-                                        </div>
-                                        
-                                        <div class="narrative-item-content-main">
-                                            ${material.notes ? `
-                                                <div class="research-notes">
-                                                    <h6>Research Notes:</h6>
-                                                    <p style="white-space: pre-wrap;">${this.escapeHTML(material.notes)}</p>
-                                                </div>
-                                            ` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
+                            ${flow.materials.map((material, index) => this.renderMaterialNarrativeItem(material, index)).join('')}
                         </div>
-                    </div>
-
-                    <!-- Right: Material Details & Media Preview -->
-                    <div class="flow-details-panel">
-                        <div class="material-details-header">
-                            <h4><i data-feather="clipboard" class="icon-sm"></i> Material Details</h4>
-                        </div>
-                        
-                        <div class="material-details-content" id="flow-preview-content">
-                            <div class="material-details-placeholder">
-                                <div class="placeholder-icon"><i data-feather="mouse-pointer" class="icon-xl"></i></div>
-                                <h4>Select a Material</h4>
-                                <p>Click on any material from the narrative to view detailed information and preview media.</p>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             </div>
@@ -225,7 +165,182 @@ class RenderManager {
     }
 
     /**
-     * Render document type coverage
+     * Enhance flow details with fresh descriptions from metadata API
+     * Called asynchronously after initial render to avoid delay
+     * @param {Object} flow - Flow object
+     * @returns {Promise<void>}
+     */
+    async enhanceFlowDetailsDescriptions(flow) {
+        // Fetch fresh descriptions from metadata endpoint for all materials to preserve line breaks
+        const descriptionUpdates = await Promise.all(
+            flow.materials.map(async (material) => {
+                const originalId = material.originalIdentifier || material.identifier;
+                try {
+                    const response = await fetch(`https://archive.org/metadata/${originalId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.metadata) {
+                            // Normalize description (handle arrays from Internet Archive API)
+                            const normalizeDescription = (desc) => {
+                                if (!desc) return '';
+                                if (Array.isArray(desc)) {
+                                    return desc.filter(item => item != null).join('\n');
+                                }
+                                return typeof desc === 'string' ? desc : String(desc);
+                            };
+
+                            return {
+                                identifier: material.identifier,
+                                description: normalizeDescription(data.metadata.description || data.metadata.summary || material.description || '')
+                            };
+                        }
+                    }
+                } catch (error) {
+                    console.warn('[RenderManager] Error fetching fresh description for flow material:', originalId, error);
+                }
+                return null;
+            })
+        );
+
+        // Update descriptions in the DOM asynchronously
+        descriptionUpdates.forEach((update, index) => {
+            if (update && update.description) {
+                const materialId = update.identifier;
+                const descriptionElements = document.querySelectorAll(`[data-material-id="${materialId}"] .material-description .description-text`);
+                descriptionElements.forEach(el => {
+                    if (el.textContent.trim() !== update.description.trim()) {
+                        // Only update if description has changed
+                        const isTruncated = el.classList.contains('truncated');
+                        const { text: truncatedDescription } = this.getTruncatedDescription(update.description);
+                        el.innerHTML = isTruncated
+                            ? this.escapeHTMLWithLineBreaks(truncatedDescription)
+                            : this.escapeHTMLWithLineBreaks(update.description);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Render a single material narrative item with integrated preview
+     * @param {Object} material - Material object
+     * @param {number} index - Material index in flow
+     * @returns {string} HTML string
+     */
+    renderMaterialNarrativeItem(material, index) {
+        // Get thumbnail URL
+        let thumbnailUrl = material.thumbnail;
+        if (!thumbnailUrl && material.identifier) {
+            thumbnailUrl = `https://archive.org/services/img/${material.identifier}`;
+        }
+
+        // Format date
+        const formattedDate = this.formatDate(material.date);
+
+        // Get media preview HTML placeholder (will be loaded by previewManager)
+        const mediaPreviewHTML = material.type !== 'data' && material.type !== 'software' ? `
+            <div class="material-media-embed-inline" id="inline-media-${material.identifier}" data-type="${material.type}">
+                <div class="media-embed-container" id="flow-media-embed-${material.identifier}">
+                    <div class="media-loading" id="flow-media-loading-${material.identifier}">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+        ` : '';
+
+        // Get fullscreen media type and identifier
+        const fullscreenMediaType = this.getFullscreenMediaType(material.type);
+        const originalId = material.originalIdentifier || material.identifier;
+        const canOpenFullscreen = material.type !== 'data' && material.type !== 'software';
+
+        return `
+            <div class="material-narrative-item" data-material-id="${material.identifier}" data-material-index="${index}">
+                <div class="narrative-item-header">
+                    <div class="narrative-item-number">${index + 1}</div>
+                    <div class="narrative-item-info">
+                        <h5 class="material-title">${this.escapeHTML(material.title)}</h5>
+                        <div class="material-meta">
+                            <span class="material-doc-type-badge">${this.getDocumentTypeIcon(material.documentType)} ${this.escapeHTML(material.documentType)}</span>
+                            <span class="material-media-type-badge">${this.getMediaIcon(material.type)} ${this.escapeHTML(material.type)}</span>
+                            ${formattedDate ? `<span class="material-date">${this.escapeHTML(formattedDate)}</span>` : ''}
+                            ${material.creator && material.creator !== 'Unknown' ? `<span class="material-creator">${this.escapeHTML(material.creator)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="narrative-item-actions narrative-item-actions-desktop">
+                        ${canOpenFullscreen ? `
+                            <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); (window.demoApp || window.publicApp).openFullscreen('${originalId}', '${fullscreenMediaType}', '${this.escapeJS(material.title)}')">
+                                <i data-feather="search" class="icon-sm"></i> Open Fullscreen
+                            </button>
+                        ` : ''}
+                        <a href="https://archive.org/details/${originalId}" target="_blank" class="btn btn-sm btn-primary">
+                            <i data-feather="external-link" class="icon-sm"></i> Archive
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="narrative-item-content">
+                    <div class="material-preview-narrative">
+                        ${thumbnailUrl ? `
+                            <img src="${this.escapeHTML(thumbnailUrl)}" 
+                                 alt="${this.escapeHTML(material.title)}" 
+                                 onerror="this.onerror=null; this.style.display='none'; const placeholder = this.nextElementSibling; if(placeholder) placeholder.style.display='flex';">
+                            <div class="document-preview-placeholder" style="display: none;">
+                                ${this.getMediaIcon(material.type)}
+                            </div>
+                        ` : `
+                            <div class="document-preview-placeholder">
+                                ${this.getMediaIcon(material.type)}
+                            </div>
+                        `}
+                    </div>
+                    
+                    <div class="narrative-item-content-main">
+                        ${material.description ? (() => {
+                const { text: truncatedDescription, isLong: isDescriptionLong } = this.getTruncatedDescription(material.description);
+
+                return `
+                                <div class="material-description">
+                                    <div class="description-text ${isDescriptionLong ? 'truncated' : ''}">${this.escapeHTMLWithLineBreaks(truncatedDescription)}</div>
+                                    ${isDescriptionLong ? `
+                                        <button class="description-toggle" onclick="(window.demoApp || window.publicApp).toggleFlowDetailsDescription('${material.identifier}')">
+                                            Show more
+                                        </button>
+                                        <div class="description-text full" style="display: none;">${this.escapeHTMLWithLineBreaks(material.description)}</div>
+                                        <button class="description-toggle" onclick="(window.demoApp || window.publicApp).toggleFlowDetailsDescription('${material.identifier}')" style="display: none;">
+                                            Show less
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            `;
+            })() : ''}
+
+                        ${mediaPreviewHTML}
+                        
+                        ${material.notes ? `
+                            <div class="research-notes">
+                                <h6>Research Notes:</h6>
+                                <div class="research-notes-content">${material.notes}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="narrative-item-actions narrative-item-actions-mobile">
+                            ${canOpenFullscreen ? `
+                                <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); (window.demoApp || window.publicApp).openFullscreen('${originalId}', '${fullscreenMediaType}', '${this.escapeJS(material.title)}')">
+                                    <i data-feather="search" class="icon-sm"></i> Open Fullscreen
+                                </button>
+                            ` : ''}
+                            <a href="https://archive.org/details/${originalId}" target="_blank" class="btn btn-sm btn-primary">
+                                <i data-feather="external-link" class="icon-sm"></i> Archive
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Render document type coverage (unified with filtering)
      * @param {Object} flow - Flow object
      * @returns {string} HTML string
      */
@@ -244,18 +359,40 @@ class RenderManager {
             }
         });
 
-        return allDocumentTypes.map(docType => {
+        // Calculate total
+        const totalCount = flow.materials.length;
+
+        // Build Total button (always active by default)
+        const totalButton = `
+            <div class="coverage-badge filter-badge has-items active" data-filter-type="all" data-count="${totalCount}" role="button" tabindex="0">
+                <div class="badge-icon"><i data-feather="layers" class="icon-sm"></i></div>
+                <div class="badge-label">Total</div>
+                <div class="badge-count">${totalCount}</div>
+            </div>
+            <div class="filter-line-break"></div>
+        `;
+
+        // Build document type badges - show all types, even with 0 count
+        const typeBadges = allDocumentTypes.map(docType => {
             const count = flowDocumentTypeCounts[docType.name] || 0;
             const hasItems = count > 0;
+            const displayName = docType.name.charAt(0).toUpperCase() + docType.name.slice(1);
 
             return `
-                <div class="coverage-badge ${hasItems ? 'has-items' : 'no-items'}" data-doc-type="${docType.name}">
+                <div class="coverage-badge filter-badge ${hasItems ? 'has-items' : 'no-items'} ${!hasItems ? 'disabled' : ''}" 
+                     data-filter-type="${docType.name}" 
+                     data-count="${count}" 
+                     ${hasItems ? 'role="button" tabindex="0"' : 'aria-disabled="true"'}
+                     title="${hasItems ? `Filter by ${displayName}` : 'No materials of this type'}"
+                     >
                     <div class="badge-icon">${this.getDocumentTypeIcon(docType.name)}</div>
-                    <div class="badge-label">${docType.name.charAt(0).toUpperCase() + docType.name.slice(1)}</div>
+                    <div class="badge-label">${this.escapeHTML(displayName)}</div>
                     <div class="badge-count">${count}</div>
                 </div>
             `;
         }).join('');
+
+        return totalButton + typeBadges;
     }
 
     /**
@@ -359,41 +496,24 @@ class RenderManager {
                                 <span>${this.escapeHTML(material.creator)}</span>
                             </div>
                         ` : ''}
+                        ${material.uploader ? `
+                            <div class="material-preview-meta-item">
+                                <span class="material-preview-meta-label">Uploaded by:</span>
+                                <span>${this.escapeHTML(material.uploader)}</span>
+                            </div>
+                        ` : ''}
                         ${fileSize ? `
                             <div class="material-preview-meta-item">
                                 <span class="material-preview-meta-label">Size:</span>
                                 <span>${this.escapeHTML(fileSize)}</span>
                             </div>
                         ` : ''}
-                        <div class="material-preview-meta-item">
-                            <span class="material-preview-meta-label">Files:</span>
-                            <span>${material.fileCount}</span>
-                        </div>
                     </div>
                 </div>
         `;
 
-        // Add description if available (with consistent truncation)
-        if (material.description) {
-            const { text: truncatedDescription, isLong: isDescriptionLong } = this.getTruncatedDescription(material.description);
-
-            previewHTML += `
-                <div class="material-preview-description">
-                    <div class="description-text ${isDescriptionLong ? 'truncated' : ''}">${this.escapeHTML(truncatedDescription)}</div>
-                    ${isDescriptionLong ? `
-                        <button class="description-toggle" onclick="demoApp.togglePreviewDescription('${material.identifier}')">
-                            Show more
-                        </button>
-                        <div class="description-text full" style="display: none;">${this.escapeHTML(material.description)}</div>
-                        <button class="description-toggle" onclick="demoApp.togglePreviewDescription('${material.identifier}')" style="display: none;">
-                            Show less
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-        }
-
         // Add integrated media preview embed with loading animation (only for non-data and non-software types)
+        // Moved before description as requested
         if (material.type !== 'data' && material.type !== 'software') {
             previewHTML += `
                 <div class="integrated-media-preview">
@@ -406,15 +526,40 @@ class RenderManager {
             `;
         }
 
+        // Add description if available (with consistent truncation)
+        // Moved below embed as requested
+        if (material.description) {
+            const { text: truncatedDescription, isLong: isDescriptionLong } = this.getTruncatedDescription(material.description);
+
+            previewHTML += `
+                <div class="material-preview-description">
+                    <div class="description-text ${isDescriptionLong ? 'truncated' : ''}">${this.escapeHTMLWithLineBreaks(truncatedDescription)}</div>
+                    ${isDescriptionLong ? `
+                        <button class="description-toggle" onclick="(window.demoApp || window.publicApp).togglePreviewDescription('${material.identifier}')">
+                            Show more
+                        </button>
+                        <div class="description-text full" style="display: none;">${this.escapeHTMLWithLineBreaks(material.description)}</div>
+                        <button class="description-toggle" onclick="(window.demoApp || window.publicApp).togglePreviewDescription('${material.identifier}')" style="display: none;">
+                            Show less
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }
+
         // Add preview/play buttons based on actual media capabilities
         const app = this.getAppInstance();
+        // Check if we're on the public page (publicApp exists and demoApp doesn't, or app is publicApp)
+        const isPublicPage = (window.publicApp && !window.demoApp) || (app && app === window.publicApp);
         const isSelected = app && app.materials ? app.materials.isMaterialSelected(material.identifier) : false;
 
         previewHTML += `
             <div class="material-preview-actions">
-                <button class="btn btn-primary" onclick="demoApp.toggleMaterialSelection('${material.identifier}')">
-                    <i data-feather="${isSelected ? 'check' : 'plus'}" class="icon-sm"></i> ${isSelected ? 'Selected' : 'Select Material'}
-                </button>
+                ${!isPublicPage ? `
+                    <button class="btn btn-primary" onclick="(window.demoApp || window.publicApp).toggleMaterialSelection('${material.identifier}')">
+                        <i data-feather="${isSelected ? 'check' : 'plus'}" class="icon-sm"></i> ${isSelected ? 'Selected' : 'Select Material'}
+                    </button>
+                ` : ''}
                 <a href="${material.url}" target="_blank" class="btn btn-secondary">
                     <i data-feather="external-link" class="icon-sm"></i> View on Archive
                 </a>
@@ -425,7 +570,7 @@ class RenderManager {
             const fullscreenMediaType = this.getFullscreenMediaType(material.type);
             const originalId = material.originalIdentifier || material.identifier;
             previewHTML += `
-                <button class="btn btn-secondary" onclick="demoApp.openFullscreen('${originalId}', '${fullscreenMediaType}', '${this.escapeJS(material.title)}')">
+                <button class="btn btn-secondary" onclick="(window.demoApp || window.publicApp).openFullscreen('${originalId}', '${fullscreenMediaType}', '${this.escapeJS(material.title)}')">
                     <i data-feather="search" class="icon-sm"></i> Open Fullscreen
                 </button>
             `;
@@ -457,36 +602,78 @@ class RenderManager {
             return '<div class="material-card error"><div class="material-content"><h3>Error: Missing material properties</h3></div></div>';
         }
 
-        if (window.Utils && window.Utils.MaterialCard && window.Utils.MaterialCard.createHTML) {
-            return window.Utils.MaterialCard.createHTML(material, {
-                context: context
-            });
+        // Check if MaterialCardComponent is available (requires components.js)
+        if (window.Utils && window.Utils.MaterialCard && window.Utils.MaterialCard.createHTML && window.MaterialCardComponent) {
+            try {
+                return window.Utils.MaterialCard.createHTML(material, {
+                    context: context
+                });
+            } catch (error) {
+                console.warn('RenderManager: Error using Utils.MaterialCard.createHTML, falling back to manual rendering:', error);
+                // Fall through to fallback implementation
+            }
         }
 
-        // Fallback implementation if Utils.MaterialCard is not available
+        // Fallback implementation if Utils.MaterialCard is not available or MaterialCardComponent is not defined
         const icon = this.getMediaIcon(material.type);
         const formattedDate = this.formatDate(material.date);
         const isSelected = this.isMaterialSelected(material.identifier);
 
+        // Get thumbnail URL - try multiple patterns
+        let thumbnailUrl = null;
+        if (material.thumbnail) {
+            thumbnailUrl = material.thumbnail;
+        } else if (material.identifier) {
+            // Try standard Internet Archive thumbnail service first
+            thumbnailUrl = `https://archive.org/services/img/${material.identifier}`;
+        }
+
+        // Determine which app to use for preview
+        const appRef = context === 'public' ? 'publicApp' : 'demoApp';
+
         return `
-            <div class="material-card ${isSelected ? 'selected' : ''}" data-identifier="${material.identifier}" onclick="demoApp.previewMaterial('${material.identifier}')" style="cursor: pointer;">
+            <div class="material-card ${isSelected ? 'selected' : ''}" data-identifier="${material.identifier}" onclick="event.preventDefault(); event.stopPropagation(); ${appRef}.previewMaterial('${material.identifier}', event)" style="cursor: pointer;">
                 <div class="material-content">
+                    ${thumbnailUrl ? `
+                        <div class="material-thumbnail">
+                            <img src="${this.escapeHTML(thumbnailUrl)}" alt="${this.escapeHTML(material.title)}" onerror="this.style.display='none'">
+                        </div>
+                    ` : ''}
                     <h3>${this.escapeHTML(material.title)}</h3>
                     <p>${this.escapeHTML(material.description || 'No description available')}</p>
                     
-                    <div class="material-meta">
-                        <span>👤 ${this.escapeHTML(material.creator)}</span>
-                        <span>📅 ${this.escapeHTML(formattedDate)}</span>
-                        <span>${icon} ${this.escapeHTML(material.type)}</span>
-                    </div>
-                    
-                    <div class="material-actions">
-                        <button class="material-select-btn ${isSelected ? 'selected' : ''}" 
-                                onclick="event.stopPropagation(); demoApp.toggleMaterialSelection('${material.identifier}')">
-                            <i data-feather="${isSelected ? 'check' : 'plus'}" class="icon-sm"></i>
-                            ${isSelected ? 'Selected' : 'Select'}
-                        </button>
-                    </div>
+                    ${context === 'search' ? `
+                        <div class="material-meta-actions-row">
+                            <span class="material-type-badge">${icon} ${this.escapeHTML(material.type)}</span>
+                            <div class="material-actions">
+                                <button class="material-select-btn ${isSelected ? 'selected' : ''}" 
+                                        onclick="event.stopPropagation(); demoApp.toggleMaterialSelection('${material.identifier}')">
+                                    <i data-feather="${isSelected ? 'check' : 'plus'}" class="icon-sm"></i>
+                                    ${isSelected ? 'Selected' : 'Select'}
+                                </button>
+                            </div>
+                        </div>
+                    ` : context === 'public' ? `
+                        <div class="material-meta-actions-row">
+                            <span class="material-type-badge">${icon} ${this.escapeHTML(material.type)}</span>
+                        </div>
+                    ` : `
+                        <div class="material-meta">
+                            <span>👤 ${this.escapeHTML(material.creator)}</span>
+                            ${material.uploader ? `
+                                <span>📤 Uploaded by: ${this.escapeHTML(material.uploader)}</span>
+                            ` : ''}
+                            <span>📅 ${this.escapeHTML(formattedDate)}</span>
+                            <span>${icon} ${this.escapeHTML(material.type)}</span>
+                        </div>
+                        <div class="material-actions">
+                            <button class="material-select-btn ${isSelected ? 'selected' : ''}" 
+                                    onclick="event.stopPropagation(); demoApp.toggleMaterialSelection('${material.identifier}')">
+                                <i data-feather="${isSelected ? 'check' : 'plus'}" class="icon-sm"></i>
+                                ${isSelected ? 'Selected' : 'Select'}
+                            </button>
+                        </div>
+                    `}
                 </div>
             </div>
         `;
@@ -510,16 +697,21 @@ class RenderManager {
     /**
      * Render pagination controls
      * @param {number} totalResults - Total number of results
+     * @param {string} position - Position of pagination ('top' or 'bottom')
      * @returns {string} HTML string
      */
-    renderPagination(totalResults) {
-        const resultsPerPage = parseInt(document.getElementById('demo-results-per-page')?.value || '6');
+    renderPagination(totalResults, position = 'top') {
+        const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
+        const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
         const totalPages = Math.ceil(totalResults / resultsPerPage);
         const currentPage = this.getCurrentPage() || 1;
 
         if (totalPages <= 1) {
             return '';
         }
+
+        // Escape position for use in onclick handler
+        const positionParam = position === 'bottom' ? "'bottom'" : "'top'";
 
         let paginationHTML = `
             <div class="pagination">
@@ -531,13 +723,13 @@ class RenderManager {
         // Previous button
         if (currentPage > 1) {
             paginationHTML += `
-                <button class="pagination-btn nav-btn" onclick="searchManager.goToPage(${currentPage - 1})">Previous</button>
+                <button class="pagination-btn nav-btn" onclick="searchManager.goToPage(${currentPage - 1}, ${positionParam})">Previous</button>
             `;
         }
 
-        // Page numbers
-        const startPage = Math.max(1, currentPage - 2);
-        const endPage = Math.min(totalPages, currentPage + 2);
+        // Page numbers - show 3 pages (currentPage - 1 to currentPage + 1)
+        const startPage = Math.max(1, currentPage - 1);
+        const endPage = Math.min(totalPages, currentPage + 1);
 
         for (let i = startPage; i <= endPage; i++) {
             if (i === currentPage) {
@@ -546,7 +738,7 @@ class RenderManager {
                 `;
             } else {
                 paginationHTML += `
-                    <button class="pagination-btn" onclick="searchManager.goToPage(${i})">${i}</button>
+                    <button class="pagination-btn" onclick="searchManager.goToPage(${i}, ${positionParam})">${i}</button>
                 `;
             }
         }
@@ -554,7 +746,7 @@ class RenderManager {
         // Next button
         if (currentPage < totalPages) {
             paginationHTML += `
-                <button class="pagination-btn nav-btn" onclick="searchManager.goToPage(${currentPage + 1})">Next</button>
+                <button class="pagination-btn nav-btn" onclick="searchManager.goToPage(${currentPage + 1}, ${positionParam})">Next</button>
             `;
         }
 
@@ -579,48 +771,54 @@ class RenderManager {
         }
 
         // Render cards asynchronously with enhanced validation
+        const validResults = results.filter(item => {
+            // Enhanced validation to prevent undefined materials
+            if (!item || typeof item !== 'object' || item === null || item === undefined) {
+                console.warn('[RenderManager] Filtering out invalid material object:', item);
+                return false;
+            }
+            if (!item.identifier || !item.title || typeof item.identifier !== 'string' || typeof item.title !== 'string') {
+                console.warn('[RenderManager] Filtering out material missing required properties:', item);
+                return false;
+            }
+            return true;
+        });
+
         const cardsHTML = (await Promise.all(
-            results
-                .filter(item => {
-                    // Enhanced validation to prevent undefined materials
-                    if (!item || typeof item !== 'object' || item === null || item === undefined) {
-                        console.warn('RenderManager: Filtering out invalid material object:', item);
-                        return false;
-                    }
-                    if (!item.identifier || !item.title || typeof item.identifier !== 'string' || typeof item.title !== 'string') {
-                        console.warn('RenderManager: Filtering out material missing required properties:', item);
-                        return false;
-                    }
-                    return true;
-                })
-                .map(async item => {
-                    // Additional safety check before rendering - use same validation as filter
-                    if (!item || typeof item !== 'object' || item === null || item === undefined) {
-                        return '<div class="material-card error"><div class="material-content"><h3>Error: Invalid material data</h3></div></div>';
-                    }
-                    if (!item.identifier || !item.title || typeof item.identifier !== 'string' || typeof item.title !== 'string') {
-                        return '<div class="material-card error"><div class="material-content"><h3>Error: Missing material properties</h3></div></div>';
-                    }
-                    return await this.renderMaterialCard(item, 'search');
-                })
+            validResults.map(async item => {
+                // Additional safety check before rendering - use same validation as filter
+                if (!item || typeof item !== 'object' || item === null || item === undefined) {
+                    return '<div class="material-card error"><div class="material-content"><h3>Error: Invalid material data</h3></div></div>';
+                }
+                if (!item.identifier || !item.title || typeof item.identifier !== 'string' || typeof item.title !== 'string') {
+                    return '<div class="material-card error"><div class="material-content"><h3>Error: Missing material properties</h3></div></div>';
+                }
+                return await this.renderMaterialCard(item, 'search');
+            })
         )).filter(card => card !== null && card !== undefined && card !== '');
 
-        // Get total results from API for proper pagination
-        const totalResults = window.internetArchiveAPI ? window.internetArchiveAPI.getTotalResultsCount() : results.length;
+        // Get total results - use searchManager.totalResults if available (for client-side filtering)
+        // Otherwise fall back to API count
+        const totalResults = (window.searchManager && window.searchManager.totalResults > 0)
+            ? window.searchManager.totalResults
+            : (window.internetArchiveAPI ? window.internetArchiveAPI.getTotalResultsCount() : results.length);
+
+        const paginationTop = this.renderPagination(totalResults, 'top');
+        const paginationBottom = this.renderPagination(totalResults, 'bottom');
 
         return `
             <div class="search-results-header">
                 <h3>Found ${totalResults} results</h3>
-                <p>Showing materials from the Internet Archive related to your search.</p>
+                <p>Showing materials from the Internet Archive related to your search. Select materials to create flows from them.</p>
             </div>
             
-            ${this.renderPagination(totalResults)}
+            ${paginationTop}
             
             <div class="results-grid">
                 ${cardsHTML.join('')}
             </div>
             
-            ${this.renderPagination(totalResults)}
+            ${paginationBottom}
         `;
     }
 
@@ -688,7 +886,7 @@ class RenderManager {
                     </div>
                     <div class="modal-content">
                         <div class="material-details">
-                            <p><strong>Description:</strong> ${this.escapeHTML(material.description || 'No description available')}</p>
+                            <p><strong>Description:</strong> ${this.escapeHTMLWithLineBreaks(material.description || 'No description available')}</p>
                             <p><strong>Creator:</strong> ${this.escapeHTML(material.creator)}</p>
                             <p><strong>Date:</strong> ${this.escapeHTML(this.formatDate(material.date))}</p>
                             <p><strong>Type:</strong> ${this.escapeHTML(material.type)}</p>
@@ -776,7 +974,7 @@ class RenderManager {
         if (materialType !== 'data' && materialType !== 'software') {
             const fullscreenId = originalIdentifier || identifier;
             controlsHTML += `
-                <button class="btn btn-secondary" onclick="demoApp.openFullscreen('${fullscreenId}', '${mediaType}', '${this.escapeJS(title)}')">
+                <button class="btn btn-secondary" onclick="(window.demoApp || window.publicApp).openFullscreen('${fullscreenId}', '${mediaType}', '${this.escapeJS(title)}')">
                     <i data-feather="search" class="icon-sm"></i> Open Fullscreen
                 </button>
             `;
@@ -869,6 +1067,135 @@ class RenderManager {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+
+    /**
+     * Sanitize HTML by removing dangerous tags while preserving formatting
+     * Normalizes styling to match website standards
+     * @param {string} html - HTML string to sanitize
+     * @returns {string} Sanitized HTML string
+     */
+    sanitizeHTML(html) {
+        if (!html) return '';
+        if (typeof html !== 'string') html = String(html);
+
+        // List of allowed HTML tags for formatting
+        const allowedTags = ['p', 'br', 'span', 'div', 'strong', 'em', 'b', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote'];
+
+        // Create a temporary container
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        // Recursively sanitize all nodes
+        const sanitizeNode = (node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.textContent;
+            }
+
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                const tagName = node.tagName.toLowerCase();
+
+                // Remove dangerous tags
+                if (!allowedTags.includes(tagName)) {
+                    // Return just the text content of removed tags
+                    return Array.from(node.childNodes).map(sanitizeNode).join('');
+                }
+
+                // Remove empty spans and br tags at the beginning
+                if (tagName === 'span' && (!node.textContent || node.textContent.trim() === '')) {
+                    return Array.from(node.childNodes).map(sanitizeNode).join('');
+                }
+
+                // For allowed tags, preserve structure but remove inline styles
+                // We'll use CSS classes instead for consistent styling
+                let attrs = '';
+                if (tagName === 'p') {
+                    // Only preserve dir attribute for paragraph direction (for RTL languages)
+                    const dir = node.getAttribute('dir');
+                    if (dir && (dir === 'ltr' || dir === 'rtl')) {
+                        attrs += ` dir="${this.escapeHTML(dir)}"`;
+                    }
+                    // Add class for consistent styling
+                    attrs += ' class="description-paragraph"';
+                } else if (tagName === 'span') {
+                    // Remove all inline styles from spans - we'll style via CSS
+                    // Only preserve dir if it's meaningful
+                    const dir = node.getAttribute('dir');
+                    if (dir && (dir === 'ltr' || dir === 'rtl')) {
+                        attrs += ` dir="${this.escapeHTML(dir)}"`;
+                    }
+                } else if (tagName === 'br') {
+                    // Keep br tags as-is, but ensure they're self-closing
+                    return '<br>';
+                }
+
+                // Recursively sanitize children
+                const children = Array.from(node.childNodes).map(sanitizeNode).join('');
+
+                // Don't wrap empty content in tags
+                if (!children.trim() && tagName !== 'br') {
+                    return '';
+                }
+
+                return `<${tagName}${attrs}>${children}</${tagName}>`;
+            }
+
+            return '';
+        };
+
+        let sanitized = Array.from(temp.childNodes).map(sanitizeNode).join('');
+
+        // Remove leading empty spans and br tags
+        sanitized = sanitized.replace(/^(<span[^>]*><\/span>|<br\s*\/?>)+/i, '');
+
+        // Remove trailing empty spans and br tags
+        sanitized = sanitized.replace(/(<span[^>]*><\/span>|<br\s*\/?>)+$/i, '');
+
+        // Normalize multiple consecutive br tags to single br
+        sanitized = sanitized.replace(/(<br\s*\/?>){2,}/gi, '<br>');
+
+        // Remove empty paragraphs
+        sanitized = sanitized.replace(/<p[^>]*>\s*<\/p>/gi, '');
+
+        return sanitized;
+    }
+
+    /**
+     * Escape HTML characters and preserve line breaks
+     * Handles both plain text (with \n) and HTML descriptions (with <p>, <br>, etc.)
+     * @param {string} str - String to escape
+     * @returns {string} Escaped string with line breaks converted to <br> tags, or sanitized HTML
+     */
+    escapeHTMLWithLineBreaks(str) {
+        if (!str) {
+            return '';
+        }
+
+        // Ensure str is a string
+        if (typeof str !== 'string') {
+            str = String(str);
+        }
+
+        // Check if the string contains HTML tags
+        const hasHTML = /<[a-z][\s\S]*>/i.test(str);
+
+        if (hasHTML) {
+            // If it contains HTML, sanitize it (preserves formatting tags, removes dangerous ones)
+            const sanitized = this.sanitizeHTML(str);
+            return sanitized;
+        }
+
+        // If no HTML, treat as plain text and convert newlines to <br>
+        const placeholder = '___LINE_BREAK_PLACEHOLDER___';
+        const withPlaceholders = str.replace(/\r\n/g, placeholder).replace(/\n/g, placeholder);
+
+        // Escape HTML for security
+        const escaped = this.escapeHTML(withPlaceholders);
+
+        // Replace placeholders with <br> tags
+        const result = escaped.replace(new RegExp(placeholder, 'g'), '<br>');
+
+        return result;
     }
 
     /**
