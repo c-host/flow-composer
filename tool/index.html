@@ -504,7 +504,8 @@
     </div>
 
     <!-- JavaScript Files -->
-    <script src="../js/toolAuth.js"></script>
+    <script src="../js/toolAuth.js"
+        onerror="console.error('Failed to load toolAuth.js'); window.toolAuthLoadError = true;"></script>
     <script src="../js/configLoader.js"></script>
     <script src="../js/config.js?v=7"></script>
     <script src="../js/utils.js?v=7"></script>
@@ -534,8 +535,13 @@
             const mainApp = document.getElementById('main-app');
 
             if (!window.toolAuth) {
-                errorDiv.textContent = 'Authentication system not loaded. Please refresh the page.';
+                if (window.toolAuthLoadError) {
+                    errorDiv.textContent = 'Authentication file failed to load. Please check that toolAuth.js exists and the deployment completed successfully.';
+                } else {
+                    errorDiv.textContent = 'Authentication system not loaded. Please refresh the page.';
+                }
                 errorDiv.style.display = 'block';
+                console.error('toolAuth not available. toolAuthLoadError:', window.toolAuthLoadError);
                 return;
             }
 
