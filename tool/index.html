@@ -506,18 +506,6 @@
     <!-- JavaScript Files -->
     <script src="../js/toolAuth.js"
         onerror="console.error('Failed to load toolAuth.js'); window.toolAuthLoadError = true;"></script>
-    <script>
-        // Diagnostic check after toolAuth.js should have loaded
-        (function () {
-            if (typeof window.toolAuth === 'undefined') {
-                console.error('toolAuth.js loaded but window.toolAuth is undefined');
-                console.error('This may indicate a JavaScript error in toolAuth.js');
-                window.toolAuthLoadError = true;
-            } else {
-                console.log('toolAuth.js loaded successfully');
-            }
-        })();
-    </script>
     <script src="../js/configLoader.js"></script>
     <script src="../js/config.js?v=7"></script>
     <script src="../js/utils.js?v=7"></script>
@@ -548,16 +536,12 @@
 
             if (!window.toolAuth) {
                 if (window.toolAuthLoadError) {
-                    errorDiv.textContent = 'Authentication file failed to load. Please check the browser console and network tab to see if toolAuth.js exists.';
+                    errorDiv.textContent = 'Authentication file failed to load. Please check that toolAuth.js exists and the deployment completed successfully.';
                 } else {
-                    errorDiv.textContent = 'Authentication system not loaded. Please check the browser console for errors and refresh the page.';
+                    errorDiv.textContent = 'Authentication system not loaded. Please refresh the page.';
                 }
                 errorDiv.style.display = 'block';
                 console.error('toolAuth not available. toolAuthLoadError:', window.toolAuthLoadError);
-                console.error('Please check:');
-                console.error('1. Network tab: Is toolAuth.js loading? (Status 200 or 404?)');
-                console.error('2. Console: Are there any JavaScript errors?');
-                console.error('3. Type "window.toolAuth" in console to check if it exists');
                 return;
             }
 
