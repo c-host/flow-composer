@@ -127,6 +127,8 @@ To enable password protection for the Flow Composer Tool on GitHub Pages:
 
 The GitHub Actions workflow will automatically inject this password during build.
 
+**Security Note:** This is client-side password protection intended for basic access control in workshop settings. The password is embedded in the deployed JavaScript file and can be viewed by anyone who inspects the source code. For production use cases requiring stronger security, consider implementing server-side authentication.
+
 ### Published Flows
 
 To publish flows:

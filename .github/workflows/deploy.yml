@@ -34,12 +34,14 @@ jobs:
       - name: Generate toolAuth.js
         run: |
           mkdir -p js
+          # Get password from secrets (GitHub Actions automatically masks secrets in logs)
           PASSWORD="${{ secrets.TOOL_PASSWORD }}"
           if [ -z "$PASSWORD" ]; then
             echo "Warning: TOOL_PASSWORD secret not set. Using default password for build."
             PASSWORD="changeme"
           fi
           # Escape the password for use in JavaScript string (escape single quotes and backslashes)
+          # Note: Password will be in the generated JS file, but not in workflow logs due to secret masking
           ESCAPED_PASSWORD=$(printf '%s' "$PASSWORD" | sed "s/'/\\\\'/g" | sed 's/\\/\\\\/g')
           # Generate file - write line by line to avoid heredoc YAML parsing issues
           {
@@ -101,11 +103,13 @@ jobs:
             echo "Error: Password placeholder was not replaced!"
             exit 1
           fi
-          # Verify JavaScript syntax using node
-          if ! node -c js/toolAuth.js 2>&1; then
+          # Verify JavaScript syntax using node (without exposing file contents)
+          if ! node -c js/toolAuth.js >/dev/null 2>&1; then
             echo "Error: toolAuth.js has invalid JavaScript syntax!"
-            echo "File contents:"
-            cat js/toolAuth.js
+            echo "Checking file structure (password not shown)..."
+            # Only show structure, not content
+            wc -l js/toolAuth.js
+            head -n 1 js/toolAuth.js | grep -q "/\*\*" && echo "File header present" || echo "File header missing"
             exit 1
           fi
           echo "JavaScript syntax validation passed"
