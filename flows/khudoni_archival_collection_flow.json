@@ -1,147 +1,8 @@
 {
-  "id": "flow - 1763661521673 -q0k6e0cmm ",
-  "name": "Demo Flow",
-  "description": "Demo Flow",
+  "id": "flow_1763970481882_gu74yhc9t",
+  "name": "Khudoni Archival Collection",
+  "description": "Asnajgapnas' internet archive collection",
   "materials": [
-    {
-      "identifier": "chiatura_book",
-      "title": "ჭიათურა, ვახტანგ ჯაოშვილი",
-      "description": "ჭიათურა, ეკონომიკურ-გეოგრაფიული ნარკვევი  ვახტანგ ჯაოშვილი გამომცემლობა მეცნიერება თბილისი 1979",
-      "creator": "'Metsniereba'",
-      "date": "1979-01-01T00:00:00Z",
-      "language": "geo",
-      "type": "texts",
-      "url": "https://archive.org/details/chiatura_book",
-      "thumbnail": null,
-      "downloadUrl": null,
-      "fileCount": 0,
-      "size": 0,
-      "text": null,
-      "metadata": {
-        "btih": "b84003a44b7e05fd78c6976201b7e7dbcfe75c19",
-        "collection": [
-          "opensource",
-          "fav-mary_vardosanidze"
-        ],
-        "creator": "'Metsniereba'",
-        "date": "1979-01-01T00:00:00Z",
-        "description": "ჭიათურა, ეკონომიკურ-გეოგრაფიული ნარკვევი  ვახტანგ ჯაოშვილი გამომცემლობა მეცნიერება თბილისი 1979",
-        "downloads": 11,
-        "format": [
-          "Additional Text PDF",
-          "Archive BitTorrent",
-          "DjVuTXT",
-          "Djvu XML",
-          "Image Container PDF",
-          "Item Tile",
-          "Metadata",
-          "OCR Page Index",
-          "OCR Search Text",
-          "Page Numbers JSON",
-          "Scandata",
-          "Single Page Processed JP2 ZIP",
-          "chOCR",
-          "hOCR"
-        ],
-        "identifier": "chiatura_book",
-        "imagecount": 68,
-        "indexflag": [
-          "index",
-          "nonoindex",
-          "uncurated"
-        ],
-        "item_size": 180651814,
-        "language": "geo",
-        "mediatype": "texts",
-        "month": 3,
-        "oai_updatedate": [
-          "2025-07-23T15:47:24Z",
-          "2025-07-23T16:28:05Z"
-        ],
-        "publicdate": "2025-07-23T15:47:24Z",
-        "subject": [
-          "Georgia",
-          "Chiatura",
-          "Mine",
-          "Manganese",
-          "Industry"
-        ],
-        "title": "ჭიათურა, ვახტანგ ჯაოშვილი",
-        "week": 0,
-        "year": 1979
-      },
-      "completeData": {
-        "identifier": "chiatura_book",
-        "title": "ჭიათურა, ვახტანგ ჯაოშვილი",
-        "description": "ჭიათურა, ეკონომიკურ-გეოგრაფიული ნარკვევი  ვახტანგ ჯაოშვილი გამომცემლობა მეცნიერება თბილისი 1979",
-        "creator": "'Metsniereba'",
-        "date": "1979-01-01T00:00:00Z",
-        "language": "geo",
-        "type": "texts",
-        "url": "https://archive.org/details/chiatura_book",
-        "thumbnail": null,
-        "downloadUrl": null,
-        "fileCount": 0,
-        "size": 0,
-        "text": null,
-        "metadata": {
-          "btih": "b84003a44b7e05fd78c6976201b7e7dbcfe75c19",
-          "collection": [
-            "opensource",
-            "fav-mary_vardosanidze"
-          ],
-          "creator": "'Metsniereba'",
-          "date": "1979-01-01T00:00:00Z",
-          "description": "ჭიათურა, ეკონომიკურ-გეოგრაფიული ნარკვევი  ვახტანგ ჯაოშვილი გამომცემლობა მეცნიერება თბილისი 1979",
-          "downloads": 11,
-          "format": [
-            "Additional Text PDF",
-            "Archive BitTorrent",
-            "DjVuTXT",
-            "Djvu XML",
-            "Image Container PDF",
-            "Item Tile",
-            "Metadata",
-            "OCR Page Index",
-            "OCR Search Text",
-            "Page Numbers JSON",
-            "Scandata",
-            "Single Page Processed JP2 ZIP",
-            "chOCR",
-            "hOCR"
-          ],
-          "identifier": "chiatura_book",
-          "imagecount": 68,
-          "indexflag": [
-            "index",
-            "nonoindex",
-            "uncurated"
-          ],
-          "item_size": 180651814,
-          "language": "geo",
-          "mediatype": "texts",
-          "month": 3,
-          "oai_updatedate": [
-            "2025-07-23T15:47:24Z",
-            "2025-07-23T16:28:05Z"
-          ],
-          "publicdate": "2025-07-23T15:47:24Z",
-          "subject": [
-            "Georgia",
-            "Chiatura",
-            "Mine",
-            "Manganese",
-            "Industry"
-          ],
-          "title": "ჭიათურა, ვახტანგ ჯაოშვილი",
-          "week": 0,
-          "year": 1979
-        }
-      },
-      "documentType": "academic",
-      "notes": "<p>ლორემ იფსუმ დოლორ სით ამეთ, ვიმ ცუ დოლორუმ ფროდესსეთ, ვიხ ნო ფაცერ ლუცილიუს დელიცათა. ფალლი მენანდრი მედიოცრემ ინ ველ, თათიონ ინერმის დუო იდ. ნო ადოლესცენს სცრიფთორემ იუს, ვულფუთათე ცონსეცთეთუერ ან ნამ. ეთ ესთ ჰაბემუს სენსიბუს ცონვენირე, ფრობო ცონვენირე ეი მეა, ეფიცური იმფერდიეთ სიმილიყუე ეამ თე.</p>",
-      "order": 0
-    },
     {
       "identifier": "1455054-529530147135872-845455772-n",
       "title": "ხუდონის პროტესტი 2014/ Khudoni Protest 2014",
@@ -274,8 +135,8 @@
         }
       },
       "documentType": "endangered",
-      "notes": "<p>ლორემ იფსუმ დოლორ სით ამეთ, ვიმ ცუ დოლორუმ ფროდესსეთ, ვიხ ნო ფაცერ ლუცილიუს დელიცათა. ფალლი მენანდრი მედიოცრემ ინ ველ, თათიონ ინერმის დუო იდ. ნო ადოლესცენს სცრიფთორემ იუს, ვულფუთათე ცონსეცთეთუერ ან ნამ. ეთ ესთ ჰაბემუს სენსიბუს ცონვენირე, ფრობო ცონვენირე ეი მეა, ეფიცური იმფერდიეთ სიმილიყუე ეამ თე.</p>",
-      "order": 1
+      "notes": "",
+      "order": 0
     },
     {
       "identifier": "khudoni_conference_2013",
@@ -411,8 +272,8 @@
         }
       },
       "documentType": "endangered",
-      "notes": "<p>ლორემ იფსუმ დოლორ სით ამეთ, ვიმ ცუ დოლორუმ ფროდესსეთ, ვიხ ნო ფაცერ ლუცილიუს დელიცათა. ფალლი მენანდრი მედიოცრემ ინ ველ, თათიონ ინერმის დუო იდ. ნო ადოლესცენს სცრიფთორემ იუს, ვულფუთათე ცონსეცთეთუერ ან ნამ. ეთ ესთ ჰაბემუს სენსიბუს ცონვენირე, ფრობო ცონვენირე ეი მეა, ეფიცური იმფერდიეთ სიმილიყუე ეამ თე.</p>",
-      "order": 2
+      "notes": "",
+      "order": 1
     },
     {
       "identifier": "ngo-statement-on-khudoni-hpp-project-15-october-2013-eng",
@@ -554,8 +415,8 @@
         }
       },
       "documentType": "policy",
-      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ipsum mauris, rutrum eget imperdiet vitae, scelerisque a neque. Phasellus lacus lectus, tincidunt et sem ac, fermentu<u>m feugiat arcu. Morbi porttitor maximus massa eget accumsan. Nunc vel interdum libero. Mauris laoreet massa a velit aliquam viverra. Nullam ullamcorper, odio sed semper tempor, purus nisi laoreet nulla, quis semper augue ipsum at tortor. Curabitur tristique, nisl a dignissim aliquam, dui magna aliquam purus, vel iaculis purus est eget lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam nibh nunc, ac mattis dui efficitur venenatis. Etiam hendrerit massa nibh, id pharetra purus pulvinar eu. Phasellus consectetur dui justo, et consequat elit bibendum sed.</u></p>",
-      "order": 3
+      "notes": "",
+      "order": 2
     },
     {
       "identifier": "khaishi_oath_17092013",
@@ -691,8 +552,8 @@
         }
       },
       "documentType": "financial",
-      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ipsum mauris, rutrum eget imperdiet vitae, scelerisque a neque. Phasell<strong><u>us lacus lectus, tincidunt et sem ac, fermentum feugiat arcu. Morbi porttitor maximus massa eget accumsan. Nunc vel interdum libero. Mauris laoreet massa a velit aliquam viverra. Nullam ullamcorper, odio sed semper tempor, pur</u></strong>us nisi lao</p><p><br></p><ul><li>reet nulla, quis semper augue ipsum at tortor. Curabitur tristique, nisl a dignissim aliquam, dui magna</li></ul><ol><li>al</li><li class=\"ql-indent-1\">iquam purus, vel iaculis purus est eget lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam nibh nunc, ac mattis dui efficitur venenatis. Etiam hendrerit massa nibh, id pharetra purus pulvinar eu. Phasellus consectetur dui justo, et consequat elit bibendum sed.</li></ol>",
-      "order": 4
+      "notes": "",
+      "order": 3
     },
     {
       "identifier": "img-0016_202509",
@@ -824,8 +685,8 @@
         }
       },
       "documentType": "photographic",
-      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ipsum mauris, rutrum eget imperdiet vitae, scelerisque a neque. Phasellus lacus lectus, tincidunt et sem ac, fermentum feugiat arcu. Morbi porttitor maximus massa eget accumsan. Nunc vel interdum libero. Mauris laoreet massa a velit aliquam viverra. Nullam ullamcorper, odio sed semper tempor, purus nisi laoreet nulla, quis semper augue ipsum at tortor. Curabitur tristique, nisl a dignissim aliquam, dui magna aliquam purus, vel iaculis purus est eget lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam nibh nunc, ac mattis dui efficitur venenatis. Etiam hendrerit massa nibh, id pharetra purus pulvinar eu. Phasellus consectetur dui justo, et consequat elit bibendum sed.</p>",
-      "order": 5
+      "notes": "",
+      "order": 4
     },
     {
       "identifier": "brochure_202510",
@@ -967,8 +828,8 @@
         }
       },
       "documentType": "photographic",
-      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ipsum mauris, rutrum eget imperdiet vitae, scelerisque a neque. Phasellus lacus lectus, tincidunt et sem ac, fermentum feugiat arcu. Morbi porttitor maximus massa eget accumsan. Nunc vel interdum libero. Mauris laoreet massa a velit aliquam viverra. Nullam ullamcorper, odio sed semper tempor, purus nisi laoreet nulla, quis semper augue ipsum at tortor. Curabitur tristique, nisl a dignissim aliquam, dui magna aliquam purus, vel iaculis purus est eget lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam nibh nunc, ac mattis dui efficitur venenatis. Etiam hendrerit massa nibh, id pharetra purus pulvinar eu. Phasellus consectetur dui justo, et consequat elit bibendum sed.</p>",
-      "order": 6
+      "notes": "",
+      "order": 5
     },
     {
       "identifier": "nag-fpa-p-0-3198-1-f-35-neg-bw",
@@ -1096,8 +957,8 @@
         }
       },
       "documentType": "photographic",
-      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ipsum mauris, rutrum eget imperdiet vitae, scelerisque a neque. Phasellus lacus lectus, tincidunt et sem ac, fermentum feugiat arcu. Morbi porttitor maximus massa eget accumsan. Nunc vel interdum libero. Mauris laoreet massa a velit aliquam viverra. Nullam ullamcorper, odio sed semper tempor, purus nisi laoreet nulla, quis semper augue ipsum at tortor. Curabitur tristique, nisl a dignissim aliquam, dui magna aliquam purus, vel iaculis purus est eget lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam nibh nunc, ac mattis dui efficitur venenatis. Etiam hendrerit massa nibh, id pharetra purus pulvinar eu. Phasellus consectetur dui justo, et consequat elit bibendum sed.</p>",
-      "order": 7
+      "notes": "",
+      "order": 6
     },
     {
       "identifier": "khudoni_hpp_newspaper_collection_1989_2003",
@@ -1257,8 +1118,8 @@
         }
       },
       "documentType": "ephemeral",
-      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ipsum mauris, rutrum eget imperdiet vitae, <strong>scelerisque a neque. Phasellus lacus lectus, tincidunt et sem ac, fermentum feugiat arcu. Morbi porttitor maximus massa eget accumsan. Nunc vel interdum libero. Mauris laoreet massa a velit aliquam viverra. Nullam ullamcorper, odio sed semper tempor, purus nisi laoreet nulla, quis semper augue ipsum at tortor. Curabitur tristique, nisl a dignissim aliqu</strong>am, dui magna aliquam purus, vel iaculis purus est eget lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam nibh nunc, ac mattis dui efficitur venenatis. Etiam hendrerit massa nibh, id pharetra purus pulvinar eu. Phasellus consectetur dui justo, et consequat elit bibendum sed.</p>",
-      "order": 8
+      "notes": "",
+      "order": 7
     },
     {
       "identifier": "khudoni_hydroknot_map",
@@ -1380,56 +1241,88 @@
         }
       },
       "documentType": "institutional",
-      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ipsum mauris, rutrum eget imperdiet vitae, <strong><u>scelerisque </u></strong>a neque. Phasellus lacus lectus, tincidunt et sem ac, fermentum feugiat arcu. Morbi porttitor maximus massa eget accumsan. Nunc vel interdum libero. laoreet massa a velit aliquam viverra. Nullam ullamcorper, odio sed semper tempor, purus nisi laoreet nulla, quis semper augue ipsum at tortor. Curabitur tristique, nisl a dignissim aliquam, dui magna aliquam purus, vel iaculis purus est eget lacus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam aliquam nibh nunc, ac mattis dui efficitur venenatis. Etiam hendrerit massa nibh, id pharetra purus pulvinar eu. Phasellus consectetur dui justo, et consequat elit bibendum sed.</p>",
-      "order": 9
+      "notes": "",
+      "order": 8
     }
   ],
   "documentTypes": [
     {
+      "id": "photographic",
       "name": "photographic",
-      "description": "Photographic documentation of physical objects, scenes, or events."
+      "label": "Photographic Documentation",
+      "description": "Photographic documentation of physical objects, scenes, or events.",
+      "icon": "camera",
+      "source": "native"
     },
     {
+      "id": "conversational",
       "name": "conversational",
-      "description": "Documentation of conversations, interviews, or meetings."
+      "label": "Conversational Documentation",
+      "description": "Documentation of conversations, interviews, or meetings.",
+      "icon": "message-circle",
+      "source": "native"
     },
     {
+      "id": "endangered",
       "name": "endangered",
-      "description": "Materials that are at risk of being lost, destroyed, or degraded."
+      "label": "Endangered Documents",
+      "description": "Materials that are at risk of being lost, destroyed, or degraded.",
+      "icon": "alert-triangle",
+      "source": "native"
     },
     {
+      "id": "academic",
       "name": "academic",
-      "description": "Research reports, academic papers, and scholarly materials."
+      "label": "Academic Documents",
+      "description": "Research reports, academic papers, and scholarly materials.",
+      "icon": "book",
+      "source": "native"
     },
     {
+      "id": "policy",
       "name": "policy",
-      "description": "Official policies, regulations, and legal documents."
+      "label": "Policy Documents",
+      "description": "Official policies, regulations, and legal documents.",
+      "icon": "clipboard",
+      "source": "native"
     },
     {
+      "id": "financial",
       "name": "financial",
-      "description": "Financial records, budgets, and accounting documents."
+      "label": "Financial Documents",
+      "description": "Financial records, budgets, and accounting documents.",
+      "icon": "dollar-sign",
+      "source": "native"
     },
     {
+      "id": "ephemeral",
       "name": "ephemeral",
-      "description": "Web-based materials that are transient or have a limited lifespan."
+      "label": "Ephemeral Web Documents",
+      "description": "Web-based materials that are transient or have a limited lifespan.",
+      "icon": "globe",
+      "source": "native"
     },
     {
+      "id": "institutional",
       "name": "institutional",
-      "description": "Documents produced by government bodies, corporations, or other formal institutions."
+      "label": "Institutional Documents",
+      "description": "Documents produced by government bodies, corporations, or other formal institutions.",
+      "icon": "home",
+      "source": "native"
     }
   ],
   "documentTypeCoverage": {
     "photographic": 3,
     "conversational": 0,
     "endangered": 2,
-    "academic": 1,
+    "academic": 0,
     "policy": 1,
     "financial": 1,
     "ephemeral": 1,
     "institutional": 1
   },
-  "created": "2025-11-20T17:58:41.673Z",
-  "lastModified": "2025-11-21T16:55:45.874Z",
-  "version": 10,
+  "created": "2025-11-24T07:48:01.882Z",
+  "lastModified": "2025-11-24T09:36:35.145Z",
+  "version": 4,
   "status": "draft"
 }
