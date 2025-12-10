@@ -24,7 +24,7 @@ class SearchManager {
         <div class="search-form">
           <input 
             type="text" 
-            id="search-query" 
+            id="demo-search-query" 
             placeholder="Search..." 
             value=""
           />
@@ -36,8 +36,8 @@ class SearchManager {
         
         <div class="search-filters">
           <div class="filter-group">
-            <label for="document-type-filter">Document Type:</label>
-            <select id="document-type-filter">
+            <label for="demo-document-type">Document Type:</label>
+            <select id="demo-document-type">
               <option value="">All Types</option>
               <option value="texts">Texts</option>
               <option value="image">Images</option>
@@ -136,8 +136,8 @@ class SearchManager {
 
     try {
       const filters = this.getFilters();
-      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
-      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      const resultsPerPage = this.resultsPerPage || Number.MAX_SAFE_INTEGER;
+      this.resultsPerPage = resultsPerPage;
 
       // Get document type filter but don't pass it to API - apply client-side instead
       const documentTypeFilter = filters.documentType;
@@ -169,8 +169,7 @@ class SearchManager {
           this.totalResults = this.filteredResults.length;
 
           // Get paginated results from filtered set
-          const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
-          const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+          const resultsPerPage = this.resultsPerPage || Number.MAX_SAFE_INTEGER;
           const startIndex = (this.currentPage - 1) * resultsPerPage;
           const endIndex = startIndex + resultsPerPage;
           this.currentResults = this.filteredResults.slice(startIndex, endIndex);
@@ -220,8 +219,8 @@ class SearchManager {
   }
 
   clearFilters() {
-    document.getElementById('search-query').value = '';
-    document.getElementById('document-type-filter').value = '';
+    document.getElementById('demo-search-query').value = '';
+    document.getElementById('demo-document-type').value = '';
     document.getElementById('date-start').value = '';
     document.getElementById('date-end').value = '';
 
@@ -741,6 +740,7 @@ class SearchManager {
     if (this.isFiltering && this.filteredResults.length > 0) {
       const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
       const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      this.resultsPerPage = resultsPerPage;
       const startIndex = (page - 1) * resultsPerPage;
       const endIndex = startIndex + resultsPerPage;
       const paginatedResults = this.filteredResults.slice(startIndex, endIndex);
@@ -776,8 +776,7 @@ class SearchManager {
     // If browsing all items, use cached results instead of re-searching
     if (this.isBrowsingAllItems) {
       const allResults = window.internetArchiveAPI?.getAllSearchResults() || this.allResults || [];
-      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
-      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      const resultsPerPage = this.resultsPerPage || Number.MAX_SAFE_INTEGER;
       const startIndex = (page - 1) * resultsPerPage;
       const endIndex = startIndex + resultsPerPage;
       const paginatedResults = allResults.slice(startIndex, endIndex);
@@ -813,8 +812,7 @@ class SearchManager {
 
     // If we have allResults stored (from a previous search), use them for pagination
     if (this.allResults && this.allResults.length > 0) {
-      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
-      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      const resultsPerPage = this.resultsPerPage || Number.MAX_SAFE_INTEGER;
       const startIndex = (page - 1) * resultsPerPage;
       const endIndex = startIndex + resultsPerPage;
       const paginatedResults = this.allResults.slice(startIndex, endIndex);
@@ -885,12 +883,31 @@ class SearchManager {
         this.resultsPerPage = parseInt(value);
       }
 
-      // If there's a current search query, refresh the search
-      const query = document.getElementById('demo-search-query')?.value || '';
-      if (query.trim()) {
-        this.currentPage = 1; // Reset to first page
-        await this.performSearch(true); // This is more like pagination than a new search
+      // Re-slice current cached results client-side instead of re-searching
+      this.currentPage = 1;
+
+      let sourceResults = [];
+
+      if (this.isFiltering && this.filteredResults.length > 0) {
+        sourceResults = this.filteredResults;
+      } else if (this.isBrowsingAllItems) {
+        sourceResults = window.internetArchiveAPI?.getAllSearchResults() || this.allResults || [];
+      } else if (this.allResults && this.allResults.length > 0) {
+        sourceResults = this.allResults;
+      } else {
+        // Fallback to last known results from API if available
+        sourceResults = (window.internetArchiveAPI?.getAllSearchResults?.() || window.internetArchiveAPI?.getLastSearchResults?.() || []);
       }
+
+      if (!sourceResults || sourceResults.length === 0) {
+        // Nothing to paginate yet; avoid triggering a new search
+        return;
+      }
+
+      this.totalResults = sourceResults.length;
+      const paginatedResults = sourceResults.slice(0, this.resultsPerPage);
+      this.currentResults = paginatedResults;
+      await this.displayResults(paginatedResults);
     }
   }
 
@@ -923,6 +940,7 @@ class SearchManager {
       const filters = this.getFilters();
       const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
       const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+      this.resultsPerPage = resultsPerPage;
 
       // Perform search with empty query - API will handle collection constraint
       const results = await window.internetArchiveAPI.search('', {
@@ -944,8 +962,7 @@ class SearchManager {
         this.totalResults = this.filteredResults.length;
 
         // Get paginated results from filtered set
-        const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
-        const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+        const resultsPerPage = this.resultsPerPage || Number.MAX_SAFE_INTEGER;
         const startIndex = (this.currentPage - 1) * resultsPerPage;
         const endIndex = startIndex + resultsPerPage;
         this.currentResults = this.filteredResults.slice(startIndex, endIndex);
@@ -1037,8 +1054,7 @@ class SearchManager {
       }
 
       // Get paginated results from filtered set
-      const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
-      const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+        const resultsPerPage = this.resultsPerPage || Number.MAX_SAFE_INTEGER;
       const startIndex = (this.currentPage - 1) * resultsPerPage;
       const endIndex = startIndex + resultsPerPage;
       const paginatedResults = this.filteredResults.slice(startIndex, endIndex);

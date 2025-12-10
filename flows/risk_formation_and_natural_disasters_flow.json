@@ -1,0 +1,1178 @@
+{
+  "id": "flow-1764944411816",
+  "name": "Risk Formation and Natural Disasters",
+  "description": "Risk formation and natural events exacerbated by climate change, state policy on natural disasters, natural disaster management",
+  "materials": [
+    {
+      "identifier": "disertacia",
+      "title": "რკინაბეტონის გამჭოლი ტიპის ჩარჩო-გისოსიანი ღვარცოფის კოლექტორების დაძაბულ-დეფორმირებული მდგომარეობის ექსპერიმენტული და თეორიული შესწავლა / экспериментально-теоретическое исследование напряженно-деформированного состояния железобеонных сквозных селеуловителей рамно-решетчатого типа",
+      "description": "იმ კონტექსტში, რომელშიც საბჭოთა ძალისხმევა მიმართულია წყლის და ქარისგან გამოწვეული ეროზიის საწინააღმდეგო ღონისძიებებისკენ, კვლევა შეისწავლის 'ხერხეულიძეების' დამბების (ღვარცოფდამჭერების) კონსტრუქციას და გამოიუმუშავებს მათი ფუნქციურობის დათვლის მეთოდებს.",
+      "creator": "Nana Burduli",
+      "uploader": null,
+      "date": "1973-01-01T00:00:00Z",
+      "language": "rus",
+      "type": "texts",
+      "url": "https://archive.org/details/disertacia",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "dee1196dfb393e025b024072dd52585fc690cf52",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "creator": "Nana Burduli",
+        "date": "1973-01-01T00:00:00Z",
+        "description": "იმ კონტექსტში, რომელშიც საბჭოთა ძალისხმევა მიმართულია წყლის და ქარისგან გამოწვეული ეროზიის საწინააღმდეგო ღონისძიებებისკენ, კვლევა შეისწავლის 'ხერხეულიძეების' დამბების (ღვარცოფდამჭერების) კონსტრუქციას და გამოიუმუშავებს მათი ფუნქციურობის დათვლის მეთოდებს.",
+        "downloads": 3,
+        "format": [
+          "Additional Text PDF",
+          "Archive BitTorrent",
+          "DjVuTXT",
+          "Djvu XML",
+          "Image Container PDF",
+          "Item Tile",
+          "Metadata",
+          "OCR Page Index",
+          "OCR Search Text",
+          "Page Numbers JSON",
+          "Scandata",
+          "Single Page Processed JP2 ZIP",
+          "chOCR",
+          "hOCR"
+        ],
+        "identifier": "disertacia",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 77964202,
+        "language": "rus",
+        "mediatype": "texts",
+        "month": 3,
+        "oai_updatedate": [
+          "2025-11-18T08:41:23Z",
+          "2025-11-21T21:31:32Z"
+        ],
+        "publicdate": "2025-11-18T08:41:23Z",
+        "subject": [
+          "dam",
+          "landslide",
+          "adaptation",
+          "Soviet Union",
+          "mudslide",
+          "ღვარცოფი",
+          "დამჭერი",
+          "ღვარცოფდამჭერი",
+          "თელავი",
+          "ხერხეულიძეების დამბა"
+        ],
+        "title": "რკინაბეტონის გამჭოლი ტიპის ჩარჩო-გისოსიანი ღვარცოფის კოლექტორების დაძაბულ-დეფორმირებული მდგომარეობის ექსპერიმენტული და თეორიული შესწავლა / экспериментально-теоретическое исследование напряженно-деформированного состояния железобеонных сквозных селеуловителей рамно-решетчатого типа",
+        "week": 0,
+        "year": 1973
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "disertacia",
+        "title": "რკინაბეტონის გამჭოლი ტიპის ჩარჩო-გისოსიანი ღვარცოფის კოლექტორების დაძაბულ-დეფორმირებული მდგომარეობის ექსპერიმენტული და თეორიული შესწავლა / экспериментально-теоретическое исследование напряженно-деформированного состояния железобеонных сквозных селеуловителей рамно-решетчатого типа",
+        "description": "იმ კონტექსტში, რომელშიც საბჭოთა ძალისხმევა მიმართულია წყლის და ქარისგან გამოწვეული ეროზიის საწინააღმდეგო ღონისძიებებისკენ, კვლევა შეისწავლის 'ხერხეულიძეების' დამბების (ღვარცოფდამჭერების) კონსტრუქციას და გამოიუმუშავებს მათი ფუნქციურობის დათვლის მეთოდებს.",
+        "creator": "Nana Burduli",
+        "uploader": null,
+        "date": "1973-01-01T00:00:00Z",
+        "language": "rus",
+        "type": "texts",
+        "url": "https://archive.org/details/disertacia",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "dee1196dfb393e025b024072dd52585fc690cf52",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "creator": "Nana Burduli",
+          "date": "1973-01-01T00:00:00Z",
+          "description": "იმ კონტექსტში, რომელშიც საბჭოთა ძალისხმევა მიმართულია წყლის და ქარისგან გამოწვეული ეროზიის საწინააღმდეგო ღონისძიებებისკენ, კვლევა შეისწავლის 'ხერხეულიძეების' დამბების (ღვარცოფდამჭერების) კონსტრუქციას და გამოიუმუშავებს მათი ფუნქციურობის დათვლის მეთოდებს.",
+          "downloads": 3,
+          "format": [
+            "Additional Text PDF",
+            "Archive BitTorrent",
+            "DjVuTXT",
+            "Djvu XML",
+            "Image Container PDF",
+            "Item Tile",
+            "Metadata",
+            "OCR Page Index",
+            "OCR Search Text",
+            "Page Numbers JSON",
+            "Scandata",
+            "Single Page Processed JP2 ZIP",
+            "chOCR",
+            "hOCR"
+          ],
+          "identifier": "disertacia",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 77964202,
+          "language": "rus",
+          "mediatype": "texts",
+          "month": 3,
+          "oai_updatedate": [
+            "2025-11-18T08:41:23Z",
+            "2025-11-21T21:31:32Z"
+          ],
+          "publicdate": "2025-11-18T08:41:23Z",
+          "subject": [
+            "dam",
+            "landslide",
+            "adaptation",
+            "Soviet Union",
+            "mudslide",
+            "ღვარცოფი",
+            "დამჭერი",
+            "ღვარცოფდამჭერი",
+            "თელავი",
+            "ხერხეულიძეების დამბა"
+          ],
+          "title": "რკინაბეტონის გამჭოლი ტიპის ჩარჩო-გისოსიანი ღვარცოფის კოლექტორების დაძაბულ-დეფორმირებული მდგომარეობის ექსპერიმენტული და თეორიული შესწავლა / экспериментально-теоретическое исследование напряженно-деформированного состояния железобеонных сквозных селеуловителей рамно-решетчатого типа",
+          "week": 0,
+          "year": 1973
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 0
+    },
+    {
+      "identifier": "i.-b_20251118",
+      "title": "გაფრთხილების ტექსტური შეტყობინება",
+      "description": "'მოსალოდნელია ამინდის გაუარესება' - გამაფრთხილებელი ტექსტური შეტყობინებები (2023 -- )",
+      "creator": "Unknown",
+      "uploader": null,
+      "date": "2025-11-18T07:35:56Z",
+      "language": "geo",
+      "type": "texts",
+      "url": "https://archive.org/details/i.-b_20251118",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "95dd167472ffefd9d3ff5da279fbff38fc58cb84",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "description": "'მოსალოდნელია ამინდის გაუარესება' - გამაფრთხილებელი ტექსტური შეტყობინებები (2023 -- )",
+        "downloads": 5,
+        "format": [
+          "Additional Text PDF",
+          "Archive BitTorrent",
+          "DjVuTXT",
+          "Djvu XML",
+          "Image Container PDF",
+          "Item Tile",
+          "Metadata",
+          "OCR Page Index",
+          "OCR Search Text",
+          "Page Numbers JSON",
+          "Scandata",
+          "Single Page Processed JP2 ZIP",
+          "chOCR",
+          "hOCR"
+        ],
+        "identifier": "i.-b_20251118",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 17346445,
+        "language": "geo",
+        "licenseurl": "https://creativecommons.org/publicdomain/mark/1.0/",
+        "mediatype": "texts",
+        "month": 5,
+        "oai_updatedate": [
+          "2025-11-18T07:35:56Z",
+          "2025-11-21T21:32:01Z"
+        ],
+        "publicdate": "2025-11-18T07:35:56Z",
+        "subject": [
+          "hazard",
+          "risk",
+          "გაფრთხილება",
+          "112",
+          "კლიმატის ცვლილება"
+        ],
+        "title": "გაფრთხილების ტექსტური შეტყობინება",
+        "week": 0
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "i.-b_20251118",
+        "title": "გაფრთხილების ტექსტური შეტყობინება",
+        "description": "'მოსალოდნელია ამინდის გაუარესება' - გამაფრთხილებელი ტექსტური შეტყობინებები (2023 -- )",
+        "creator": "Unknown",
+        "uploader": null,
+        "date": "2025-11-18T07:35:56Z",
+        "language": "geo",
+        "type": "texts",
+        "url": "https://archive.org/details/i.-b_20251118",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "95dd167472ffefd9d3ff5da279fbff38fc58cb84",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "description": "'მოსალოდნელია ამინდის გაუარესება' - გამაფრთხილებელი ტექსტური შეტყობინებები (2023 -- )",
+          "downloads": 5,
+          "format": [
+            "Additional Text PDF",
+            "Archive BitTorrent",
+            "DjVuTXT",
+            "Djvu XML",
+            "Image Container PDF",
+            "Item Tile",
+            "Metadata",
+            "OCR Page Index",
+            "OCR Search Text",
+            "Page Numbers JSON",
+            "Scandata",
+            "Single Page Processed JP2 ZIP",
+            "chOCR",
+            "hOCR"
+          ],
+          "identifier": "i.-b_20251118",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 17346445,
+          "language": "geo",
+          "licenseurl": "https://creativecommons.org/publicdomain/mark/1.0/",
+          "mediatype": "texts",
+          "month": 5,
+          "oai_updatedate": [
+            "2025-11-18T07:35:56Z",
+            "2025-11-21T21:32:01Z"
+          ],
+          "publicdate": "2025-11-18T07:35:56Z",
+          "subject": [
+            "hazard",
+            "risk",
+            "გაფრთხილება",
+            "112",
+            "კლიმატის ცვლილება"
+          ],
+          "title": "გაფრთხილების ტექსტური შეტყობინება",
+          "week": 0
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 1
+    },
+    {
+      "identifier": "userisk-spotlight-georgia",
+      "title": "Georgia Risk Spotlight for Common Country Analysis (CCA)",
+      "description": "Overview of risks associated with various natural hazards (UN Office for Disaster Risk Reduction - UNDRR). Included sources on exposure, vulnerability, and Climate Change.   ",
+      "creator": "UNDRR",
+      "uploader": null,
+      "date": "2025-11-14T17:34:29Z",
+      "language": "eng",
+      "type": "texts",
+      "url": "https://archive.org/details/userisk-spotlight-georgia",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "48c9b321d39da81e122a8c27e01850684b69b5b2",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "creator": "UNDRR",
+        "description": "Overview of risks associated with various natural hazards (UN Office for Disaster Risk Reduction - UNDRR). Included sources on exposure, vulnerability, and Climate Change.   ",
+        "downloads": 3,
+        "format": [
+          "Archive BitTorrent",
+          "DjVuTXT",
+          "Djvu XML",
+          "Item Tile",
+          "Metadata",
+          "OCR Page Index",
+          "OCR Search Text",
+          "Page Numbers JSON",
+          "Scandata",
+          "Single Page Processed JP2 ZIP",
+          "Text PDF",
+          "chOCR",
+          "hOCR"
+        ],
+        "identifier": "userisk-spotlight-georgia",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 4799321,
+        "language": "eng",
+        "mediatype": "texts",
+        "month": 3,
+        "oai_updatedate": [
+          "2025-11-14T17:34:29Z",
+          "2025-11-21T21:31:40Z"
+        ],
+        "publicdate": "2025-11-14T17:34:29Z",
+        "subject": [
+          "hazards",
+          "risk",
+          "Georgia",
+          "UNDRR",
+          "vulnerability"
+        ],
+        "title": "Georgia Risk Spotlight for Common Country Analysis (CCA)",
+        "week": 0
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "userisk-spotlight-georgia",
+        "title": "Georgia Risk Spotlight for Common Country Analysis (CCA)",
+        "description": "Overview of risks associated with various natural hazards (UN Office for Disaster Risk Reduction - UNDRR). Included sources on exposure, vulnerability, and Climate Change.   ",
+        "creator": "UNDRR",
+        "uploader": null,
+        "date": "2025-11-14T17:34:29Z",
+        "language": "eng",
+        "type": "texts",
+        "url": "https://archive.org/details/userisk-spotlight-georgia",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "48c9b321d39da81e122a8c27e01850684b69b5b2",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "creator": "UNDRR",
+          "description": "Overview of risks associated with various natural hazards (UN Office for Disaster Risk Reduction - UNDRR). Included sources on exposure, vulnerability, and Climate Change.   ",
+          "downloads": 3,
+          "format": [
+            "Archive BitTorrent",
+            "DjVuTXT",
+            "Djvu XML",
+            "Item Tile",
+            "Metadata",
+            "OCR Page Index",
+            "OCR Search Text",
+            "Page Numbers JSON",
+            "Scandata",
+            "Single Page Processed JP2 ZIP",
+            "Text PDF",
+            "chOCR",
+            "hOCR"
+          ],
+          "identifier": "userisk-spotlight-georgia",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 4799321,
+          "language": "eng",
+          "mediatype": "texts",
+          "month": 3,
+          "oai_updatedate": [
+            "2025-11-14T17:34:29Z",
+            "2025-11-21T21:31:40Z"
+          ],
+          "publicdate": "2025-11-14T17:34:29Z",
+          "subject": [
+            "hazards",
+            "risk",
+            "Georgia",
+            "UNDRR",
+            "vulnerability"
+          ],
+          "title": "Georgia Risk Spotlight for Common Country Analysis (CCA)",
+          "week": 0
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 2
+    },
+    {
+      "identifier": "img-1137_202511",
+      "title": "რისკის ქვეშ მყოფი ობიექტები/objects at risk",
+      "description": "რისკის მანიშნებელნი, თვითონაც რისკის ქვეშ (ხევსურეთი, ყაზბეგი).  ",
+      "creator": "საბეჭდო და რადეკი",
+      "uploader": null,
+      "date": "2025-01-01T00:00:00Z",
+      "language": "en",
+      "type": "image",
+      "url": "https://archive.org/details/img-1137_202511",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "757814ee0049b494f337acbb38cce5614a3f7fc7",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "creator": "საბეჭდო და რადეკი",
+        "date": "2025-01-01T00:00:00Z",
+        "description": "რისკის მანიშნებელნი, თვითონაც რისკის ქვეშ (ხევსურეთი, ყაზბეგი).  ",
+        "downloads": 10,
+        "format": [
+          "Archive BitTorrent",
+          "HEIF",
+          "Item Tile",
+          "JPEG",
+          "JPEG Thumb",
+          "Metadata",
+          "PNG"
+        ],
+        "identifier": "img-1137_202511",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 26771407,
+        "licenseurl": "https://creativecommons.org/licenses/by-nd/4.0/",
+        "mediatype": "image",
+        "month": 10,
+        "oai_updatedate": [
+          "2025-11-14T17:23:21Z",
+          "2025-11-21T21:31:32Z"
+        ],
+        "publicdate": "2025-11-14T17:23:21Z",
+        "subject": [
+          "risk",
+          "objects at risk",
+          "landslide",
+          "მეწყერი",
+          "ხევსურეთი",
+          "ყაზბეგი",
+          "Georgia"
+        ],
+        "title": "რისკის ქვეშ მყოფი ობიექტები/objects at risk",
+        "week": 9,
+        "year": 2025
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "img-1137_202511",
+        "title": "რისკის ქვეშ მყოფი ობიექტები/objects at risk",
+        "description": "რისკის მანიშნებელნი, თვითონაც რისკის ქვეშ (ხევსურეთი, ყაზბეგი).  ",
+        "creator": "საბეჭდო და რადეკი",
+        "uploader": null,
+        "date": "2025-01-01T00:00:00Z",
+        "language": "en",
+        "type": "image",
+        "url": "https://archive.org/details/img-1137_202511",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "757814ee0049b494f337acbb38cce5614a3f7fc7",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "creator": "საბეჭდო და რადეკი",
+          "date": "2025-01-01T00:00:00Z",
+          "description": "რისკის მანიშნებელნი, თვითონაც რისკის ქვეშ (ხევსურეთი, ყაზბეგი).  ",
+          "downloads": 10,
+          "format": [
+            "Archive BitTorrent",
+            "HEIF",
+            "Item Tile",
+            "JPEG",
+            "JPEG Thumb",
+            "Metadata",
+            "PNG"
+          ],
+          "identifier": "img-1137_202511",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 26771407,
+          "licenseurl": "https://creativecommons.org/licenses/by-nd/4.0/",
+          "mediatype": "image",
+          "month": 10,
+          "oai_updatedate": [
+            "2025-11-14T17:23:21Z",
+            "2025-11-21T21:31:32Z"
+          ],
+          "publicdate": "2025-11-14T17:23:21Z",
+          "subject": [
+            "risk",
+            "objects at risk",
+            "landslide",
+            "მეწყერი",
+            "ხევსურეთი",
+            "ყაზბეგი",
+            "Georgia"
+          ],
+          "title": "რისკის ქვეშ მყოფი ობიექტები/objects at risk",
+          "week": 9,
+          "year": 2025
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 3
+    },
+    {
+      "identifier": "20251114_20251114_1706",
+      "title": "კანონი 'საგანგებო Მდგომარეობის შესახებ'",
+      "description": "\"საგანგებო მდგომარეობის შესახებ\", საქართველოს კანონში შეტანილი ცვლილებები: -საბოლოო რედაქტირებული ვარიანტი -ცვლილებები -განმარტებითი ბარათი -იმ მუხლების მოქმედი რედაქცია, რომლებშიც ამ კანონპროექტით შედის ცვლილება ",
+      "creator": "Parliament of Georgia",
+      "uploader": null,
+      "date": "2018-05-24T00:00:00Z",
+      "language": "geo",
+      "type": "texts",
+      "url": "https://archive.org/details/20251114_20251114_1706",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "65606c287be255048c5c6aa17f08bd2e1d2d6f5f",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "creator": "Parliament of Georgia",
+        "date": "2018-05-24T00:00:00Z",
+        "description": "\"საგანგებო მდგომარეობის შესახებ\", საქართველოს კანონში შეტანილი ცვლილებები: -საბოლოო რედაქტირებული ვარიანტი -ცვლილებები -განმარტებითი ბარათი -იმ მუხლების მოქმედი რედაქცია, რომლებშიც ამ კანონპროექტით შედის ცვლილება ",
+        "downloads": 2,
+        "format": [
+          "Additional Text PDF",
+          "Archive BitTorrent",
+          "DjVuTXT",
+          "Djvu XML",
+          "Image Container PDF",
+          "Item Tile",
+          "Metadata",
+          "OCR Page Index",
+          "OCR Search Text",
+          "Page Numbers JSON",
+          "Scandata",
+          "Single Page Processed JP2 ZIP",
+          "Text PDF",
+          "chOCR",
+          "hOCR"
+        ],
+        "identifier": "20251114_20251114_1706",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 14156410,
+        "language": "geo",
+        "mediatype": "texts",
+        "month": 2,
+        "oai_updatedate": [
+          "2025-11-14T17:09:37Z",
+          "2025-11-21T21:32:05Z"
+        ],
+        "publicdate": "2025-11-14T17:09:37Z",
+        "subject": [
+          "კანონი",
+          "საგანგებო მდგომარეობა",
+          "პარლამენტი",
+          "Georgia",
+          "law"
+        ],
+        "title": "კანონი 'საგანგებო Მდგომარეობის შესახებ'",
+        "week": 0,
+        "year": 2018
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "20251114_20251114_1706",
+        "title": "კანონი 'საგანგებო Მდგომარეობის შესახებ'",
+        "description": "\"საგანგებო მდგომარეობის შესახებ\", საქართველოს კანონში შეტანილი ცვლილებები: -საბოლოო რედაქტირებული ვარიანტი -ცვლილებები -განმარტებითი ბარათი -იმ მუხლების მოქმედი რედაქცია, რომლებშიც ამ კანონპროექტით შედის ცვლილება ",
+        "creator": "Parliament of Georgia",
+        "uploader": null,
+        "date": "2018-05-24T00:00:00Z",
+        "language": "geo",
+        "type": "texts",
+        "url": "https://archive.org/details/20251114_20251114_1706",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "65606c287be255048c5c6aa17f08bd2e1d2d6f5f",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "creator": "Parliament of Georgia",
+          "date": "2018-05-24T00:00:00Z",
+          "description": "\"საგანგებო მდგომარეობის შესახებ\", საქართველოს კანონში შეტანილი ცვლილებები: -საბოლოო რედაქტირებული ვარიანტი -ცვლილებები -განმარტებითი ბარათი -იმ მუხლების მოქმედი რედაქცია, რომლებშიც ამ კანონპროექტით შედის ცვლილება ",
+          "downloads": 2,
+          "format": [
+            "Additional Text PDF",
+            "Archive BitTorrent",
+            "DjVuTXT",
+            "Djvu XML",
+            "Image Container PDF",
+            "Item Tile",
+            "Metadata",
+            "OCR Page Index",
+            "OCR Search Text",
+            "Page Numbers JSON",
+            "Scandata",
+            "Single Page Processed JP2 ZIP",
+            "Text PDF",
+            "chOCR",
+            "hOCR"
+          ],
+          "identifier": "20251114_20251114_1706",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 14156410,
+          "language": "geo",
+          "mediatype": "texts",
+          "month": 2,
+          "oai_updatedate": [
+            "2025-11-14T17:09:37Z",
+            "2025-11-21T21:32:05Z"
+          ],
+          "publicdate": "2025-11-14T17:09:37Z",
+          "subject": [
+            "კანონი",
+            "საგანგებო მდგომარეობა",
+            "პარლამენტი",
+            "Georgia",
+            "law"
+          ],
+          "title": "კანონი 'საგანგებო Მდგომარეობის შესახებ'",
+          "week": 0,
+          "year": 2018
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 4
+    },
+    {
+      "identifier": "keti-skhireli-eliso-barnovi-interview",
+      "title": "ინტერვიუ (ჩანაწერები), პროექტი 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში'",
+      "description": "ინტერვიუ (ს ჩანაწერები) ქეთი სხირელთან და ელისო ბარნოვთან პროექტზე 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში' / Scaling-Up Multi-Hazard Early Warning System and the Use of Climate Information in Georgia. the United Nations Development Programme (UNDP), in cooperation with the Government of Georgia, with funds from Green Climate Fund (GCF).",
+      "creator": "საბეჭდო",
+      "uploader": null,
+      "date": "2025-01-01T00:00:00Z",
+      "language": "geo",
+      "type": "texts",
+      "url": "https://archive.org/details/keti-skhireli-eliso-barnovi-interview",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "28a106a56c83aa83a714ba3f9efcb204169cbff7",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "creator": "საბეჭდო",
+        "date": "2025-01-01T00:00:00Z",
+        "description": "ინტერვიუ (ს ჩანაწერები) ქეთი სხირელთან და ელისო ბარნოვთან პროექტზე 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში' / Scaling-Up Multi-Hazard Early Warning System and the Use of Climate Information in Georgia. the United Nations Development Programme (UNDP), in cooperation with the Government of Georgia, with funds from Green Climate Fund (GCF).",
+        "downloads": 6,
+        "format": [
+          "Archive BitTorrent",
+          "DjVuTXT",
+          "Djvu XML",
+          "Item Tile",
+          "Metadata",
+          "OCR Page Index",
+          "OCR Search Text",
+          "Page Numbers JSON",
+          "Scandata",
+          "Single Page Processed JP2 ZIP",
+          "Text PDF",
+          "chOCR",
+          "hOCR"
+        ],
+        "identifier": "keti-skhireli-eliso-barnovi-interview",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 9582818,
+        "language": "geo",
+        "licenseurl": "https://creativecommons.org/licenses/by-nd/4.0/",
+        "mediatype": "texts",
+        "month": 6,
+        "oai_updatedate": [
+          "2025-11-14T16:24:35Z",
+          "2025-11-21T21:31:27Z"
+        ],
+        "publicdate": "2025-11-14T16:24:35Z",
+        "subject": [
+          "Climate Information",
+          "რისკი",
+          "ადრეული შეტყობინების სისტემა",
+          "multi-hazard",
+          "Georgia",
+          "UNDP"
+        ],
+        "title": "ინტერვიუ (ჩანაწერები), პროექტი 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში'",
+        "week": 2,
+        "year": 2025
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "keti-skhireli-eliso-barnovi-interview",
+        "title": "ინტერვიუ (ჩანაწერები), პროექტი 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში'",
+        "description": "ინტერვიუ (ს ჩანაწერები) ქეთი სხირელთან და ელისო ბარნოვთან პროექტზე 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში' / Scaling-Up Multi-Hazard Early Warning System and the Use of Climate Information in Georgia. the United Nations Development Programme (UNDP), in cooperation with the Government of Georgia, with funds from Green Climate Fund (GCF).",
+        "creator": "საბეჭდო",
+        "uploader": null,
+        "date": "2025-01-01T00:00:00Z",
+        "language": "geo",
+        "type": "texts",
+        "url": "https://archive.org/details/keti-skhireli-eliso-barnovi-interview",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "28a106a56c83aa83a714ba3f9efcb204169cbff7",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "creator": "საბეჭდო",
+          "date": "2025-01-01T00:00:00Z",
+          "description": "ინტერვიუ (ს ჩანაწერები) ქეთი სხირელთან და ელისო ბარნოვთან პროექტზე 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში' / Scaling-Up Multi-Hazard Early Warning System and the Use of Climate Information in Georgia. the United Nations Development Programme (UNDP), in cooperation with the Government of Georgia, with funds from Green Climate Fund (GCF).",
+          "downloads": 6,
+          "format": [
+            "Archive BitTorrent",
+            "DjVuTXT",
+            "Djvu XML",
+            "Item Tile",
+            "Metadata",
+            "OCR Page Index",
+            "OCR Search Text",
+            "Page Numbers JSON",
+            "Scandata",
+            "Single Page Processed JP2 ZIP",
+            "Text PDF",
+            "chOCR",
+            "hOCR"
+          ],
+          "identifier": "keti-skhireli-eliso-barnovi-interview",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 9582818,
+          "language": "geo",
+          "licenseurl": "https://creativecommons.org/licenses/by-nd/4.0/",
+          "mediatype": "texts",
+          "month": 6,
+          "oai_updatedate": [
+            "2025-11-14T16:24:35Z",
+            "2025-11-21T21:31:27Z"
+          ],
+          "publicdate": "2025-11-14T16:24:35Z",
+          "subject": [
+            "Climate Information",
+            "რისკი",
+            "ადრეული შეტყობინების სისტემა",
+            "multi-hazard",
+            "Georgia",
+            "UNDP"
+          ],
+          "title": "ინტერვიუ (ჩანაწერები), პროექტი 'მრავლობითი საფრთხის შემცველი ადრეული შეტყობინების სისტემის გაფართოება და კლიმატის შესახებ ინფორმაციის გამოყენება საქართველოში'",
+          "week": 2,
+          "year": 2025
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 5
+    },
+    {
+      "identifier": "cenn-drr-1",
+      "title": "ქალაქი თელავი კატასტროფული წყალმოვარდნის რისკის ქვეშ",
+      "description": "თელავისხევის აუზის მდგრადობის შეფასების ანგარიში https://environment.cenn.org/app/uploads/2020/06/CENN_DRR-%E1%83%97%E1%83%94%E1%83%9A%E1%83%90%E1%83%95%E1%83%98%E1%83%A1%E1%83%AE%E1%83%94%E1%83%95%E1%83%98%E1%83%A1-%E1%83%90%E1%83%A3%E1%83%96%E1%83%98%E1%83%A1-%E1%83%9B%E1%83%93%E1%83%92%E1%83%A0%E1%83%90%E1%83%93%E1%83%9D%E1%83%91%E1%83%98%E1%83%A1-%E1%83%A8%E1%83%94%E1%83%A4%E1%83%90%E1%83%A1%E1%83%94%E1%83%91%E1%83%98%E1%83%A1-%E1%83%90%E1%83%9C%E1%83%92%E1%83%90%E1%83%A0%E1%83%98%E1%83%A8%E1%83%98.pdf ",
+      "creator": "CENN with funding from Austrian Development Cooperation",
+      "uploader": null,
+      "date": "2025-01-01T00:00:00Z",
+      "language": "geo",
+      "type": "texts",
+      "url": "https://archive.org/details/cenn-drr-1",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "5e67c5ef5cf2ec03558b81273b71e8fd3c9e1e30",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "creator": "CENN with funding from Austrian Development Cooperation",
+        "date": "2025-01-01T00:00:00Z",
+        "description": "თელავისხევის აუზის მდგრადობის შეფასების ანგარიში https://environment.cenn.org/app/uploads/2020/06/CENN_DRR-%E1%83%97%E1%83%94%E1%83%9A%E1%83%90%E1%83%95%E1%83%98%E1%83%A1%E1%83%AE%E1%83%94%E1%83%95%E1%83%98%E1%83%A1-%E1%83%90%E1%83%A3%E1%83%96%E1%83%98%E1%83%A1-%E1%83%9B%E1%83%93%E1%83%92%E1%83%A0%E1%83%90%E1%83%93%E1%83%9D%E1%83%91%E1%83%98%E1%83%A1-%E1%83%A8%E1%83%94%E1%83%A4%E1%83%90%E1%83%A1%E1%83%94%E1%83%91%E1%83%98%E1%83%A1-%E1%83%90%E1%83%9C%E1%83%92%E1%83%90%E1%83%A0%E1%83%98%E1%83%A8%E1%83%98.pdf ",
+        "downloads": 3,
+        "format": [
+          "Archive BitTorrent",
+          "DjVuTXT",
+          "Djvu XML",
+          "Item Tile",
+          "Metadata",
+          "OCR Page Index",
+          "OCR Search Text",
+          "Page Numbers JSON",
+          "Scandata",
+          "Single Page Processed JP2 ZIP",
+          "Text PDF",
+          "chOCR",
+          "hOCR"
+        ],
+        "identifier": "cenn-drr-1",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 6265725,
+        "language": "geo",
+        "mediatype": "texts",
+        "month": 3,
+        "oai_updatedate": [
+          "2025-11-14T16:02:40Z",
+          "2025-11-21T21:31:36Z"
+        ],
+        "publicdate": "2025-11-14T16:02:40Z",
+        "subject": [
+          "resilience",
+          "Georgia",
+          "Telavi",
+          "მდგრადობა",
+          "ღვარცოფი"
+        ],
+        "title": "ქალაქი თელავი კატასტროფული წყალმოვარდნის რისკის ქვეშ",
+        "week": 1,
+        "year": 2025
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "cenn-drr-1",
+        "title": "ქალაქი თელავი კატასტროფული წყალმოვარდნის რისკის ქვეშ",
+        "description": "თელავისხევის აუზის მდგრადობის შეფასების ანგარიში https://environment.cenn.org/app/uploads/2020/06/CENN_DRR-%E1%83%97%E1%83%94%E1%83%9A%E1%83%90%E1%83%95%E1%83%98%E1%83%A1%E1%83%AE%E1%83%94%E1%83%95%E1%83%98%E1%83%A1-%E1%83%90%E1%83%A3%E1%83%96%E1%83%98%E1%83%A1-%E1%83%9B%E1%83%93%E1%83%92%E1%83%A0%E1%83%90%E1%83%93%E1%83%9D%E1%83%91%E1%83%98%E1%83%A1-%E1%83%A8%E1%83%94%E1%83%A4%E1%83%90%E1%83%A1%E1%83%94%E1%83%91%E1%83%98%E1%83%A1-%E1%83%90%E1%83%9C%E1%83%92%E1%83%90%E1%83%A0%E1%83%98%E1%83%A8%E1%83%98.pdf ",
+        "creator": "CENN with funding from Austrian Development Cooperation",
+        "uploader": null,
+        "date": "2025-01-01T00:00:00Z",
+        "language": "geo",
+        "type": "texts",
+        "url": "https://archive.org/details/cenn-drr-1",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "5e67c5ef5cf2ec03558b81273b71e8fd3c9e1e30",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "creator": "CENN with funding from Austrian Development Cooperation",
+          "date": "2025-01-01T00:00:00Z",
+          "description": "თელავისხევის აუზის მდგრადობის შეფასების ანგარიში https://environment.cenn.org/app/uploads/2020/06/CENN_DRR-%E1%83%97%E1%83%94%E1%83%9A%E1%83%90%E1%83%95%E1%83%98%E1%83%A1%E1%83%AE%E1%83%94%E1%83%95%E1%83%98%E1%83%A1-%E1%83%90%E1%83%A3%E1%83%96%E1%83%98%E1%83%A1-%E1%83%9B%E1%83%93%E1%83%92%E1%83%A0%E1%83%90%E1%83%93%E1%83%9D%E1%83%91%E1%83%98%E1%83%A1-%E1%83%A8%E1%83%94%E1%83%A4%E1%83%90%E1%83%A1%E1%83%94%E1%83%91%E1%83%98%E1%83%A1-%E1%83%90%E1%83%9C%E1%83%92%E1%83%90%E1%83%A0%E1%83%98%E1%83%A8%E1%83%98.pdf ",
+          "downloads": 3,
+          "format": [
+            "Archive BitTorrent",
+            "DjVuTXT",
+            "Djvu XML",
+            "Item Tile",
+            "Metadata",
+            "OCR Page Index",
+            "OCR Search Text",
+            "Page Numbers JSON",
+            "Scandata",
+            "Single Page Processed JP2 ZIP",
+            "Text PDF",
+            "chOCR",
+            "hOCR"
+          ],
+          "identifier": "cenn-drr-1",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 6265725,
+          "language": "geo",
+          "mediatype": "texts",
+          "month": 3,
+          "oai_updatedate": [
+            "2025-11-14T16:02:40Z",
+            "2025-11-21T21:31:36Z"
+          ],
+          "publicdate": "2025-11-14T16:02:40Z",
+          "subject": [
+            "resilience",
+            "Georgia",
+            "Telavi",
+            "მდგრადობა",
+            "ღვარცოფი"
+          ],
+          "title": "ქალაქი თელავი კატასტროფული წყალმოვარდნის რისკის ქვეშ",
+          "week": 1,
+          "year": 2025
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 6
+    },
+    {
+      "identifier": "1302534147",
+      "title": "ინჟინერი ნონა ბურდული იკლვევს დურუჯის (საბჭოთა) ღვარცოფდამჭერს / Engineer Nona Burduli researches the Kherkheulidze dams",
+      "description": "ინჟინერი ნონა ბურდული იკვლევს დურუჯის ღვარცოფდამჭერ ნაგებობას/დამბას (1973 წ) Engineer Nona Burduli at her research site on the Duruji River, conducting fieldwork for her dissertation on mudslide-control dams (ღვარცოფი) (1973)  ",
+      "creator": "Unknown",
+      "uploader": null,
+      "date": "1973-01-01T00:00:00Z",
+      "language": "en",
+      "type": "image",
+      "url": "https://archive.org/details/1302534147",
+      "thumbnail": null,
+      "downloadUrl": null,
+      "fileCount": 0,
+      "size": 0,
+      "text": null,
+      "metadata": {
+        "btih": "6ef59a545e84735e6ff938cd4ec4857de95f7845",
+        "collection": [
+          "dineba",
+          "additional_collections"
+        ],
+        "date": "1973-01-01T00:00:00Z",
+        "description": "ინჟინერი ნონა ბურდული იკვლევს დურუჯის ღვარცოფდამჭერ ნაგებობას/დამბას (1973 წ) Engineer Nona Burduli at her research site on the Duruji River, conducting fieldwork for her dissertation on mudslide-control dams (ღვარცოფი) (1973)  ",
+        "downloads": 8,
+        "format": [
+          "Archive BitTorrent",
+          "Item Tile",
+          "JPEG",
+          "JPEG Thumb",
+          "Metadata"
+        ],
+        "identifier": "1302534147",
+        "indexflag": [
+          "index",
+          "nonoindex"
+        ],
+        "item_size": 332380,
+        "mediatype": "image",
+        "month": 8,
+        "oai_updatedate": [
+          "2025-11-14T15:43:28Z",
+          "2025-11-26T09:08:05Z"
+        ],
+        "publicdate": "2025-11-14T15:43:28Z",
+        "rights": "courtesy of Lali Burduli (daughter of Nona Burduli)",
+        "subject": [
+          "landslide",
+          "mudslide",
+          "ნონა ბურდული",
+          "dam",
+          "ღვარცოფი",
+          "ინჟინერია",
+          "Soviet Union",
+          "დამბა",
+          "დურუჯი",
+          "ყვარელი",
+          "Georgia",
+          "Telavi"
+        ],
+        "title": "ინჟინერი ნონა ბურდული იკლვევს დურუჯის (საბჭოთა) ღვარცოფდამჭერს / Engineer Nona Burduli researches the Kherkheulidze dams",
+        "week": 3,
+        "year": 1973
+      },
+      "notes": "",
+      "completeData": {
+        "identifier": "1302534147",
+        "title": "ინჟინერი ნონა ბურდული იკლვევს დურუჯის (საბჭოთა) ღვარცოფდამჭერს / Engineer Nona Burduli researches the Kherkheulidze dams",
+        "description": "ინჟინერი ნონა ბურდული იკვლევს დურუჯის ღვარცოფდამჭერ ნაგებობას/დამბას (1973 წ) Engineer Nona Burduli at her research site on the Duruji River, conducting fieldwork for her dissertation on mudslide-control dams (ღვარცოფი) (1973)  ",
+        "creator": "Unknown",
+        "uploader": null,
+        "date": "1973-01-01T00:00:00Z",
+        "language": "en",
+        "type": "image",
+        "url": "https://archive.org/details/1302534147",
+        "thumbnail": null,
+        "downloadUrl": null,
+        "fileCount": 0,
+        "size": 0,
+        "text": null,
+        "metadata": {
+          "btih": "6ef59a545e84735e6ff938cd4ec4857de95f7845",
+          "collection": [
+            "dineba",
+            "additional_collections"
+          ],
+          "date": "1973-01-01T00:00:00Z",
+          "description": "ინჟინერი ნონა ბურდული იკვლევს დურუჯის ღვარცოფდამჭერ ნაგებობას/დამბას (1973 წ) Engineer Nona Burduli at her research site on the Duruji River, conducting fieldwork for her dissertation on mudslide-control dams (ღვარცოფი) (1973)  ",
+          "downloads": 8,
+          "format": [
+            "Archive BitTorrent",
+            "Item Tile",
+            "JPEG",
+            "JPEG Thumb",
+            "Metadata"
+          ],
+          "identifier": "1302534147",
+          "indexflag": [
+            "index",
+            "nonoindex"
+          ],
+          "item_size": 332380,
+          "mediatype": "image",
+          "month": 8,
+          "oai_updatedate": [
+            "2025-11-14T15:43:28Z",
+            "2025-11-26T09:08:05Z"
+          ],
+          "publicdate": "2025-11-14T15:43:28Z",
+          "rights": "courtesy of Lali Burduli (daughter of Nona Burduli)",
+          "subject": [
+            "landslide",
+            "mudslide",
+            "ნონა ბურდული",
+            "dam",
+            "ღვარცოფი",
+            "ინჟინერია",
+            "Soviet Union",
+            "დამბა",
+            "დურუჯი",
+            "ყვარელი",
+            "Georgia",
+            "Telavi"
+          ],
+          "title": "ინჟინერი ნონა ბურდული იკლვევს დურუჯის (საბჭოთა) ღვარცოფდამჭერს / Engineer Nona Burduli researches the Kherkheulidze dams",
+          "week": 3,
+          "year": 1973
+        },
+        "notes": ""
+      },
+      "documentType": "policy",
+      "order": 7
+    }
+  ],
+  "documentTypes": [
+    {
+      "id": "photographic",
+      "name": "photographic",
+      "label": "Photographic Documentation",
+      "description": "Photographic documentation of physical objects, scenes, or events.",
+      "icon": "camera",
+      "source": "native"
+    },
+    {
+      "id": "conversational",
+      "name": "conversational",
+      "label": "Conversational Documentation",
+      "description": "Documentation of conversations, interviews, or meetings.",
+      "icon": "message-circle",
+      "source": "native"
+    },
+    {
+      "id": "endangered",
+      "name": "endangered",
+      "label": "Endangered Documents",
+      "description": "Materials that are at risk of being lost, destroyed, or degraded.",
+      "icon": "alert-triangle",
+      "source": "native"
+    },
+    {
+      "id": "academic",
+      "name": "academic",
+      "label": "Academic Documents",
+      "description": "Research reports, academic papers, and scholarly materials.",
+      "icon": "book",
+      "source": "native"
+    },
+    {
+      "id": "policy",
+      "name": "policy",
+      "label": "Policy Documents",
+      "description": "Official policies, regulations, and legal documents.",
+      "icon": "clipboard",
+      "source": "native"
+    },
+    {
+      "id": "financial",
+      "name": "financial",
+      "label": "Financial Documents",
+      "description": "Financial records, budgets, and accounting documents.",
+      "icon": "dollar-sign",
+      "source": "native"
+    },
+    {
+      "id": "ephemeral",
+      "name": "ephemeral",
+      "label": "Ephemeral Web Documents",
+      "description": "Web-based materials that are transient or have a limited lifespan.",
+      "icon": "globe",
+      "source": "native"
+    },
+    {
+      "id": "institutional",
+      "name": "institutional",
+      "label": "Institutional Documents",
+      "description": "Documents produced by government bodies, corporations, or other formal institutions.",
+      "icon": "home",
+      "source": "native"
+    }
+  ],
+  "documentTypeCoverage": {
+    "photographic": 0,
+    "conversational": 0,
+    "endangered": 0,
+    "academic": 0,
+    "policy": 8,
+    "financial": 0,
+    "ephemeral": 0,
+    "institutional": 0
+  },
+  "created": "2025-12-05T14:20:11.819Z",
+  "lastModified": "2025-12-05T14:20:11.819Z",
+  "version": 1,
+  "status": "draft",
+  "isExpanded": true
+}

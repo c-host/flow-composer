@@ -797,11 +797,7 @@ a.btn {
 }
 
 .demo-section {
-    background-color: var(--surface-3);
-    border-radius: var(--radius-xl);
     padding: var(--spacing-6);
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-primary);
 }
 
 .demo-section h2 {
@@ -1193,11 +1189,7 @@ a.btn {
 }
 
 .search-form {
-    background-color: var(--surface-2);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-4);
     margin-bottom: var(--spacing-4);
-    border: 1px solid var(--border-primary);
 }
 
 .search-header {
@@ -1365,8 +1357,8 @@ a.btn {
 
 .search-results-header {
     margin-bottom: var(--spacing-1);
-    padding: var(--spacing-4);
     background-color: var(--surface-2);
+    padding-bottom: var(--spacing-2);
     border-radius: var(--radius-lg);
 }
 
@@ -1948,9 +1940,9 @@ a.btn {
    ========================================================================== */
 
 .selected-materials-section {
-    margin-top: var(--spacing-8);
-    padding-top: var(--spacing-6);
-    border-top: 1px solid var(--border-primary);
+    padding: var(--spacing-4);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
 }
 
 .selected-materials-section h3 {
@@ -2249,7 +2241,7 @@ a.btn {
 .selected-materials-section .empty-state,
 #selected-materials-list .empty-state {
     text-align: initial;
-    padding: var(--spacing-8) 0;
+    padding: var(--spacing-2) 0;
 }
 
 /* ==========================================================================
@@ -2997,8 +2989,6 @@ a.btn {
     display: flex;
     gap: var(--spacing-4);
     margin-bottom: var(--spacing-4);
-    padding: var(--spacing-4);
-    background-color: var(--surface-2);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-primary);
     flex-wrap: wrap;
@@ -3293,10 +3283,6 @@ a.btn {
     display: flex;
     gap: var(--spacing-3);
     margin-top: var(--spacing-6);
-    padding: var(--spacing-4);
-    background-color: var(--surface-2);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-primary);
 }
 
 .flows-actions .btn {
@@ -3840,12 +3826,8 @@ a.btn {
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background-color: var(--surface-2);
-    border-radius: 0.5rem;
-    border: 1px solid var(--border-primary);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 /* Remove top margin for pagination at the top of search results */
@@ -4038,7 +4020,6 @@ a.btn {
     .pagination {
         flex-wrap: wrap;
         gap: 0.25rem;
-        padding: 0.75rem;
         margin-top: 1rem;
         margin-bottom: 1rem;
     }
@@ -5184,10 +5165,6 @@ a.btn {
 
 /* Flow Header with Document Type Summary */
 .flow-overview-panel {
-    background-color: var(--surface-2);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-4);
     display: flex;
     flex-direction: column;
     gap: var(--spacing-3);
@@ -5964,10 +5941,6 @@ a.btn {
 @media (max-width: 768px) {
     .flow-narrative-layout {
         gap: var(--spacing-3);
-    }
-
-    .flow-overview-panel {
-        padding: var(--spacing-3);
     }
 
     .coverage-analysis-section h4 {

@@ -9,19 +9,18 @@ class DemoApp {
         this.selectedMaterials = []; // Initialize selectedMaterials array
         // Media state is now managed by MediaManager
         // Search state is now managed by SearchManager
-        // Database operations are now managed by DatabaseManager
         // UI operations are now managed by UIManager
         // Preview operations are now managed by PreviewManager
-        this.database = new DatabaseManager();
         this.ui = new UIManager(this);
         this.preview = new PreviewManager(this);
 
-        // Initialize IndexedDB with proper error handling
-        this.initDatabase().catch(error => {
-            console.error('Database initialization failed:', error);
-            // App will continue with fallback mode
-        });
+        // Remove old IndexedDB database now that we only use localStorage
+        this.cleanupOldIndexedDB();
         this.init();
+        // Load flows after UI is initialized so existing flows render immediately
+        this.loadFlowsFromStorage().catch(error => {
+            console.error('Flow load failed:', error);
+        });
     }
 
     /**
@@ -39,169 +38,24 @@ class DemoApp {
      * Setup placeholder protection against browser extension interference
      */
     setupPlaceholderProtection() {
-        // Store original placeholder values
-        const originalPlaceholders = new Map();
-        const restorationInProgress = new Set();
-
-        // Function to store original placeholder values
-        const storeOriginalPlaceholders = () => {
-            const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]');
-            inputs.forEach(input => {
-                if (input.placeholder && input.placeholder !== 'null') {
-                    const key = input.id || input.className || input.tagName;
-                    originalPlaceholders.set(key, input.placeholder);
-                }
-            });
-        };
-
-        // Function to restore placeholders (with loop prevention)
-        const restorePlaceholders = () => {
-            const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]');
-            inputs.forEach(input => {
-                const currentPlaceholder = input.getAttribute('placeholder');
-                if (currentPlaceholder === 'null') {
-                    const key = input.id || input.className || input.tagName;
-                    const originalPlaceholder = originalPlaceholders.get(key);
-
-                    if (originalPlaceholder && !restorationInProgress.has(key)) {
-                        restorationInProgress.add(key);
-
-                        // Use requestAnimationFrame to avoid conflicts with extensions
-                        requestAnimationFrame(() => {
-                            input.placeholder = originalPlaceholder;
-                            // Remove from restoration set after a delay
-                            setTimeout(() => restorationInProgress.delete(key), 100);
-                        });
-                    }
-                }
-            });
-        };
-
-        // Store original placeholders on page load
-        storeOriginalPlaceholders();
-
-        // Debounced restoration function
-        let restorationTimeout;
-        const debouncedRestore = () => {
-            clearTimeout(restorationTimeout);
-            restorationTimeout = setTimeout(restorePlaceholders, 50);
-        };
-
-        // Monitor for placeholder changes (with throttling)
-        const observer = new MutationObserver((mutations) => {
-            let shouldRestore = false;
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'placeholder') {
-                    const target = mutation.target;
-                    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                        const newValue = target.getAttribute('placeholder');
-                        if (newValue === 'null') {
-                            shouldRestore = true;
-                        }
-                    }
-                }
-            });
-
-            if (shouldRestore) {
-                debouncedRestore();
-            }
-        });
-
-        observer.observe(document.body, {
-            attributes: true,
-            attributeFilter: ['placeholder'],
-            subtree: true
-        });
-
-        // Also restore placeholders on ESC key press (defensive)
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                // Store placeholders before extensions can interfere
-                storeOriginalPlaceholders();
-                debouncedRestore();
-            }
-        });
-
-        // Additional protection: restore placeholders when they become visible again
-        const visibilityObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && entry.target.tagName === 'INPUT' || entry.target.tagName === 'TEXTAREA') {
-                    const input = entry.target;
-                    if (input.getAttribute('placeholder') === 'null') {
-                        const key = input.id || input.className || input.tagName;
-                        const originalPlaceholder = originalPlaceholders.get(key);
-                        if (originalPlaceholder) {
-                            input.placeholder = originalPlaceholder;
-                        }
-                    }
-                }
-            });
-        });
-
-        // Observe all input and textarea elements
-        document.querySelectorAll('input, textarea').forEach(el => {
-            visibilityObserver.observe(el);
-        });
+        if (window.Utils && Utils.PlaceholderProtection && typeof Utils.PlaceholderProtection.enable === 'function') {
+            this.placeholderProtection = Utils.PlaceholderProtection.enable();
+        }
     }
 
     /**
-     * Initialize IndexedDB for local storage
+     * Remove old IndexedDB database (no longer used)
      */
-    async initDatabase() {
+    cleanupOldIndexedDB() {
+        if (!('indexedDB' in window)) return;
         try {
-            await this.database.initDatabase();
-            // Load flows after database is initialized
-            await this.loadFlowsFromStorage();
-
-            // Show database status notification if in fallback mode
-            if (this.database.isInFallbackMode()) {
-                this.showDatabaseStatusNotification();
-            }
+            const request = indexedDB.deleteDatabase('FlowComposerDB');
+            request.onerror = () => {
+                console.warn('Failed to delete legacy IndexedDB database');
+            };
         } catch (error) {
-            console.error('Database initialization failed, enabling fallback mode:', error);
-            // Ensure database is in fallback mode
-            this.database.enableFallbackMode();
-            // Load any existing flows from fallback storage
-            await this.loadFlowsFromStorage();
-            this.showDatabaseStatusNotification();
+            console.warn('Error deleting legacy IndexedDB database:', error);
         }
-    }
-
-    /**
-     * Show database status notification (production mode - silent)
-     */
-    showDatabaseStatusNotification() {
-        // In production, we handle database issues silently
-        // The app works normally with localStorage backup
-        const storageInfo = this.database.getStorageInfo();
-        if (storageInfo.mode === 'fallback') {
-        }
-    }
-
-    /**
-     * Attempt to recover database from fallback mode
-     */
-    async attemptDatabaseRecovery() {
-        try {
-            const success = await this.database.attemptRecovery();
-            if (success) {
-                // Reload flows from the recovered database
-                await this.loadFlowsFromStorage();
-                this.updateCreatedFlows();
-            }
-            return success;
-        } catch (error) {
-            console.error('Error during database recovery:', error);
-            // In production, we handle this silently
-            return false;
-        }
-    }
-
-    /**
-     * Get database status information
-     */
-    getDatabaseStatus() {
-        return this.database.getDetailedStatus();
     }
 
     /**
@@ -234,38 +88,34 @@ class DemoApp {
     }
 
     /**
-     * Save flows to IndexedDB or fallback storage
+     * Save flows to localStorage
      */
     async saveFlowsToStorage() {
-        try {
-            await this.database.saveFlowsToStorage(this.createdFlows);
-            // Also save to localStorage as backup
-            this.saveFlowsToLocalStorage();
-        } catch (error) {
-            console.error('Error saving flows to storage:', error);
-            // Try to save to localStorage as backup
-            this.saveFlowsToLocalStorage();
-            // In production, we handle this silently - localStorage backup ensures persistence
-        }
+        this.saveFlowsToLocalStorage();
     }
 
     /**
-     * Load flows from IndexedDB or fallback storage
+     * Load flows from localStorage
      */
     async loadFlowsFromStorage() {
-        try {
-            this.createdFlows = await this.database.loadFlowsFromStorage();
+        const loaded = this.loadFlowsFromLocalStorage();
+        if (!loaded) {
+            this.createdFlows = [];
             this.updateCreatedFlows();
-        } catch (error) {
-            console.error('Error loading flows from storage:', error);
-            // Try to load from localStorage backup
-            const loadedFromBackup = this.loadFlowsFromLocalStorage();
-            if (!loadedFromBackup) {
-                // Ensure we have an empty array if loading fails
-                this.createdFlows = [];
-                this.updateCreatedFlows();
-            }
+            return;
         }
+
+        // Ensure flows data is well-formed before rendering
+        this.createdFlows = Array.isArray(this.createdFlows)
+            ? this.createdFlows.filter(flow => flow && typeof flow === 'object')
+            : [];
+        this.createdFlows.forEach(flow => {
+            flow.materials = Array.isArray(flow.materials) ? flow.materials : [];
+            flow.name = flow.name || 'Untitled Flow';
+            flow.description = flow.description || '';
+            flow.created = flow.created || new Date().toISOString();
+        });
+        this.updateCreatedFlows();
     }
 
 
@@ -897,7 +747,16 @@ class DemoApp {
             flowsControls.style.display = 'block';
         }
 
-        container.innerHTML = this.createdFlows.map(flow => this.render.renderCreatedFlowCard(flow)).join('');
+        const renderedFlows = [];
+        for (const flow of this.createdFlows) {
+            try {
+                renderedFlows.push(this.render.renderCreatedFlowCard(flow));
+            } catch (error) {
+                console.error('Error rendering flow, skipping entry:', flow && flow.id, error);
+            }
+        }
+
+        container.innerHTML = renderedFlows.join('');
 
         // Replace Feather icons in the created flows
         if (typeof feather !== 'undefined') {

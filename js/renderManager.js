@@ -701,8 +701,10 @@ class RenderManager {
      * @returns {string} HTML string
      */
     renderPagination(totalResults, position = 'top') {
-        const resultsPerPageValue = document.getElementById('demo-results-per-page')?.value || '4';
-        const resultsPerPage = resultsPerPageValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(resultsPerPageValue);
+        const perPageFromManager = window.searchManager?.resultsPerPage;
+        const selectValue = document.getElementById('demo-results-per-page')?.value || '4';
+        const perPageFromSelect = selectValue === 'all' ? Number.MAX_SAFE_INTEGER : parseInt(selectValue);
+        const resultsPerPage = perPageFromManager || perPageFromSelect || 4;
         const totalPages = Math.ceil(totalResults / resultsPerPage);
         const currentPage = this.getCurrentPage() || 1;
 
@@ -710,48 +712,35 @@ class RenderManager {
             return '';
         }
 
-        // Escape position for use in onclick handler
-        const positionParam = position === 'bottom' ? "'bottom'" : "'top'";
-
-        let paginationHTML = `
-            <div class="pagination">
-                <div class="pagination-info">
-                    Page ${currentPage} of ${totalPages} (${totalResults} total results)
-                </div>
-        `;
-
-        // Previous button
-        if (currentPage > 1) {
-            paginationHTML += `
-                <button class="pagination-btn nav-btn" onclick="searchManager.goToPage(${currentPage - 1}, ${positionParam})">Previous</button>
-            `;
-        }
-
-        // Page numbers - show 3 pages (currentPage - 1 to currentPage + 1)
-        const startPage = Math.max(1, currentPage - 1);
-        const endPage = Math.min(totalPages, currentPage + 1);
-
-        for (let i = startPage; i <= endPage; i++) {
-            if (i === currentPage) {
-                paginationHTML += `
-                    <button class="pagination-btn current-page">${i}</button>
-                `;
-            } else {
-                paginationHTML += `
-                    <button class="pagination-btn" onclick="searchManager.goToPage(${i}, ${positionParam})">${i}</button>
-                `;
+        // Build page list with first/last and ellipsis (matches public site)
+        const pages = [];
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                pages.push(i);
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                pages.push('...');
             }
         }
 
-        // Next button
-        if (currentPage < totalPages) {
-            paginationHTML += `
-                <button class="pagination-btn nav-btn" onclick="searchManager.goToPage(${currentPage + 1}, ${positionParam})">Next</button>
-            `;
-        }
+        const positionParam = position === 'bottom' ? "'bottom'" : "'top'";
 
-        paginationHTML += '</div>';
-        return paginationHTML;
+        return `
+            <div class="pagination">
+                <button class="btn btn-outline" ${currentPage === 1 ? 'disabled' : ''} onclick="searchManager.goToPage(${currentPage - 1}, ${positionParam})">
+                    Previous
+                </button>
+                <div class="pagination-pages">
+                    ${pages.map(page =>
+                        page === '...'
+                            ? '<span>...</span>'
+                            : `<button class="btn ${page === currentPage ? 'btn-primary' : 'btn-outline'}" onclick="searchManager.goToPage(${page}, ${positionParam})">${page}</button>`
+                    ).join('')}
+                </div>
+                <button class="btn btn-outline" ${currentPage === totalPages ? 'disabled' : ''} onclick="searchManager.goToPage(${currentPage + 1}, ${positionParam})">
+                    Next
+                </button>
+            </div>
+        `;
     }
 
     /**

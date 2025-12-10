@@ -112,6 +112,119 @@ const Utils = {
     },
 
     /**
+     * Placeholder protection utilities (guards against extensions overwriting placeholders)
+     */
+    PlaceholderProtection: {
+        enable() {
+            if (typeof document === 'undefined') {
+                return { restore: () => { }, disconnect: () => { } };
+            }
+
+            const originalPlaceholders = new Map();
+            const restorationInProgress = new Set();
+
+            const storeOriginalPlaceholders = () => {
+                const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]');
+                inputs.forEach(input => {
+                    if (input.placeholder && input.placeholder !== 'null') {
+                        const key = input.id || input.className || input.tagName;
+                        originalPlaceholders.set(key, input.placeholder);
+                    }
+                });
+            };
+
+            const restorePlaceholders = () => {
+                const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]');
+                inputs.forEach(input => {
+                    const currentPlaceholder = input.getAttribute('placeholder');
+                    if (currentPlaceholder === 'null') {
+                        const key = input.id || input.className || input.tagName;
+                        const originalPlaceholder = originalPlaceholders.get(key);
+
+                        if (originalPlaceholder && !restorationInProgress.has(key)) {
+                            restorationInProgress.add(key);
+
+                            requestAnimationFrame(() => {
+                                input.placeholder = originalPlaceholder;
+                                setTimeout(() => restorationInProgress.delete(key), 100);
+                            });
+                        }
+                    }
+                });
+            };
+
+            storeOriginalPlaceholders();
+
+            let restorationTimeout;
+            const debouncedRestore = () => {
+                clearTimeout(restorationTimeout);
+                restorationTimeout = setTimeout(restorePlaceholders, 50);
+            };
+
+            const observer = new MutationObserver((mutations) => {
+                let shouldRestore = false;
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'placeholder') {
+                        const target = mutation.target;
+                        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                            const newValue = target.getAttribute('placeholder');
+                            if (newValue === 'null') {
+                                shouldRestore = true;
+                            }
+                        }
+                    }
+                });
+
+                if (shouldRestore) {
+                    debouncedRestore();
+                }
+            });
+
+            observer.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['placeholder'],
+                subtree: true
+            });
+
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    storeOriginalPlaceholders();
+                    debouncedRestore();
+                }
+            };
+            document.addEventListener('keydown', escHandler);
+
+            const visibilityObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.target.tagName === 'INPUT' || entry.target.tagName === 'TEXTAREA') {
+                        const input = entry.target;
+                        if (input.getAttribute('placeholder') === 'null') {
+                            const key = input.id || input.className || input.tagName;
+                            const originalPlaceholder = originalPlaceholders.get(key);
+                            if (originalPlaceholder) {
+                                input.placeholder = originalPlaceholder;
+                            }
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('input, textarea').forEach(el => {
+                visibilityObserver.observe(el);
+            });
+
+            return {
+                restore: restorePlaceholders,
+                disconnect: () => {
+                    observer.disconnect();
+                    visibilityObserver.disconnect();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+        }
+    },
+
+    /**
      * String Utilities
      */
     String: {

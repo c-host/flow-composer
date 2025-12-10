@@ -264,5 +264,5 @@ Flow Composer runs entirely in your web browser. No server or installation is re
 - Search and access materials from the Internet Archive (in the tool)
 - Load materials for viewing
 
-In the Flow Composer Tool, all flows are stored locally in your browser using localStorage as the primary storage method, with IndexedDB as a secondary option. The public archive display loads published flows from the `flows/` directory.
+In the Flow Composer Tool, all flows are stored locally in your browser using localStorage. The public archive display loads published flows from the `flows/` directory.
 

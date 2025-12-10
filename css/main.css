@@ -324,7 +324,6 @@ a:hover {
 }
 
 .page {
-    padding: var(--spacing-6) 0;
     min-height: calc(100vh - 200px);
 }
 
@@ -891,10 +890,6 @@ select:focus {
 
     .container {
         padding: 0 var(--spacing-3);
-    }
-
-    .page {
-        padding: var(--spacing-6) 0;
     }
 
     .page-header {

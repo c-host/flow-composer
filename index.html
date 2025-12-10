@@ -136,6 +136,12 @@
             <section class="demo-section">
                 <h2>Published Flows</h2>
                 <p id="flows-description">Explore curated research flows through the archive.</p>
+                <div class="flows-controls" style="display: block;">
+                    <div class="flows-search">
+                        <input type="text" id="flows-search-input" placeholder="Search flows..."
+                            onkeyup="if(window.publicApp) window.publicApp.searchFlows(this.value)">
+                    </div>
+                </div>
                 <div id="published-flows-container" class="created-flows-grid">
                     <div class="empty-state">
                         <div class="empty-state-icon"><i data-feather="layers" class="icon-xl"></i></div>
@@ -178,9 +184,9 @@
     <script src="js/utils.js?v=7"></script>
     <script src="js/eventManager.js?v=7"></script>
     <script src="js/stateManager.js?v=7"></script>
-    <script src="js/flowLoader.js"></script>
+    <script src="js/publishedFlowLoader.js"></script>
     <script src="js/publicSearch.js"></script>
-    <script src="js/publicApp.js"></script>
+    <script src="js/publicApp.js?v=8"></script>
     <script src="js/api.js?v=7"></script>
     <script src="js/renderManager.js?v=7"></script>
     <script src="js/previewManager.js?v=7"></script>

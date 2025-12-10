@@ -1,9 +1,9 @@
 /**
- * Flow Loader
+ * PublishedFlow Loader
  * Loads published flows from flows/ directory
  */
 
-class FlowLoader {
+class PublishedFlowLoader {
     constructor() {
         this.flows = [];
         this.loaded = false;
@@ -16,13 +16,13 @@ class FlowLoader {
         try {
             const response = await fetch('flows/index.json');
             if (!response.ok) {
-                console.warn('[FlowLoader] flows/index.json not found (HTTP', response.status, '), will try to load individual flows');
+                console.warn('[PublishedFlowLoader] flows/index.json not found (HTTP', response.status, '), will try to load individual flows');
                 return null;
             }
             const index = await response.json();
             return index.flows || [];
         } catch (error) {
-            console.error('[FlowLoader] Error loading flows index:', error);
+            console.error('[PublishedFlowLoader] Error loading flows index:', error);
             return null;
         }
     }
@@ -34,13 +34,13 @@ class FlowLoader {
         try {
             const response = await fetch(`flows/${filename}`);
             if (!response.ok) {
-                console.warn(`[FlowLoader] Flow file not found: ${filename} (HTTP ${response.status})`);
+                console.warn(`[PublishedFlowLoader] Flow file not found: ${filename} (HTTP ${response.status})`);
                 return null;
             }
             const flow = await response.json();
             return flow;
         } catch (error) {
-            console.error(`[FlowLoader] Error loading flow ${filename}:`, error);
+            console.error(`[PublishedFlowLoader] Error loading flow ${filename}:`, error);
             return null;
         }
     }
@@ -73,7 +73,7 @@ class FlowLoader {
             this.loaded = true;
             return this.flows;
         } catch (error) {
-            console.error('[FlowLoader] Error loading flows:', error);
+            console.error('[PublishedFlowLoader] Error loading flows:', error);
             this.flows = [];
             return this.flows;
         }
@@ -121,6 +121,6 @@ class FlowLoader {
 
 // Initialize and export
 if (typeof window !== 'undefined') {
-    window.flowLoader = new FlowLoader();
+    window.publishedFlowLoader = new PublishedFlowLoader();
 }
 

@@ -519,7 +519,6 @@
     <script src="../js/dragDrop.js?v=7"></script>
     <script src="../js/mediaManager.js?v=7"></script>
     <script src="../js/materialManager.js?v=7"></script>
-    <script src="../js/databaseManager.js?v=7"></script>
     <script src="../js/uiManager.js?v=7"></script>
     <script src="../js/previewManager.js?v=7"></script>
     <script src="../js/renderManager.js?v=7"></script>
@@ -561,6 +560,16 @@
                 if (typeof feather !== 'undefined') {
                     feather.replace();
                 }
+
+                // Ensure flows load immediately after authentication
+                if (window.demoApp && typeof window.demoApp.loadFlowsFromStorage === 'function') {
+                    window.demoApp.loadFlowsFromStorage().catch(console.error);
+                }
+
+                // Automatically browse all items on load for the tool
+                if (window.searchManager && typeof window.searchManager.browseAllItems === 'function') {
+                    window.searchManager.browseAllItems().catch(console.error);
+                }
             } else {
                 // Wrong password
                 errorDiv.style.display = 'block';
@@ -595,6 +604,14 @@
                 document.getElementById('main-app').style.display = 'block';
                 if (typeof feather !== 'undefined') {
                     feather.replace();
+                }
+                // Load flows when session is already authenticated
+                if (window.demoApp && typeof window.demoApp.loadFlowsFromStorage === 'function') {
+                    window.demoApp.loadFlowsFromStorage().catch(console.error);
+                }
+                // Automatically browse all items on load for the tool
+                if (window.searchManager && typeof window.searchManager.browseAllItems === 'function') {
+                    window.searchManager.browseAllItems().catch(console.error);
                 }
             }
         });

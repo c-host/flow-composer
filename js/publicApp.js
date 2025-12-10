@@ -7,7 +7,7 @@ class PublicApp {
     constructor() {
         this.flows = [];
         this.searchManager = window.publicSearchManager;
-        this.flowLoader = window.flowLoader;
+        this.publishedFlowLoader = window.publishedFlowLoader;
         this.isLoading = false;
     }
 
@@ -32,7 +32,7 @@ class PublicApp {
             }
 
             // Load flows only (fast) - IA items will load on demand
-            const flows = await this.flowLoader.loadAllFlows();
+            const flows = await this.publishedFlowLoader.loadAllFlows();
 
             this.flows = flows;
             this.isLoading = false;
@@ -51,109 +51,9 @@ class PublicApp {
      * Setup placeholder protection against browser extension interference
      */
     setupPlaceholderProtection() {
-        // Store original placeholder values
-        const originalPlaceholders = new Map();
-        const restorationInProgress = new Set();
-
-        // Function to store original placeholder values
-        const storeOriginalPlaceholders = () => {
-            const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]');
-            inputs.forEach(input => {
-                if (input.placeholder && input.placeholder !== 'null') {
-                    const key = input.id || input.className || input.tagName;
-                    originalPlaceholders.set(key, input.placeholder);
-                }
-            });
-        };
-
-        // Function to restore placeholders (with loop prevention)
-        const restorePlaceholders = () => {
-            const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]');
-            inputs.forEach(input => {
-                const currentPlaceholder = input.getAttribute('placeholder');
-                if (currentPlaceholder === 'null') {
-                    const key = input.id || input.className || input.tagName;
-                    const originalPlaceholder = originalPlaceholders.get(key);
-
-                    if (originalPlaceholder && !restorationInProgress.has(key)) {
-                        restorationInProgress.add(key);
-
-                        // Use requestAnimationFrame to avoid conflicts with extensions
-                        requestAnimationFrame(() => {
-                            input.placeholder = originalPlaceholder;
-                            // Remove from restoration set after a delay
-                            setTimeout(() => restorationInProgress.delete(key), 100);
-                        });
-                    }
-                }
-            });
-        };
-
-        // Store original placeholders on page load
-        storeOriginalPlaceholders();
-
-        // Debounced restoration function
-        let restorationTimeout;
-        const debouncedRestore = () => {
-            clearTimeout(restorationTimeout);
-            restorationTimeout = setTimeout(restorePlaceholders, 50);
-        };
-
-        // Monitor for placeholder changes (with throttling)
-        const observer = new MutationObserver((mutations) => {
-            let shouldRestore = false;
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'placeholder') {
-                    const target = mutation.target;
-                    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                        const newValue = target.getAttribute('placeholder');
-                        if (newValue === 'null') {
-                            shouldRestore = true;
-                        }
-                    }
-                }
-            });
-
-            if (shouldRestore) {
-                debouncedRestore();
-            }
-        });
-
-        observer.observe(document.body, {
-            attributes: true,
-            attributeFilter: ['placeholder'],
-            subtree: true
-        });
-
-        // Also restore placeholders on ESC key press (defensive)
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                // Store placeholders before extensions can interfere
-                storeOriginalPlaceholders();
-                debouncedRestore();
-            }
-        });
-
-        // Additional protection: restore placeholders when they become visible again
-        const visibilityObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && entry.target.tagName === 'INPUT' || entry.target.tagName === 'TEXTAREA') {
-                    const input = entry.target;
-                    if (input.getAttribute('placeholder') === 'null') {
-                        const key = input.id || input.className || input.tagName;
-                        const originalPlaceholder = originalPlaceholders.get(key);
-                        if (originalPlaceholder) {
-                            input.placeholder = originalPlaceholder;
-                        }
-                    }
-                }
-            });
-        });
-
-        // Observe all input and textarea elements
-        document.querySelectorAll('input, textarea').forEach(el => {
-            visibilityObserver.observe(el);
-        });
+        if (window.Utils && Utils.PlaceholderProtection && typeof Utils.PlaceholderProtection.enable === 'function') {
+            this.placeholderProtection = Utils.PlaceholderProtection.enable();
+        }
     }
 
     /**
@@ -198,15 +98,16 @@ class PublicApp {
     /**
      * Update flows display
      */
-    updateFlowsDisplay() {
+    updateFlowsDisplay(flowsToRender = this.flows) {
         const container = document.getElementById('published-flows-container');
         if (!container) {
             console.warn('[PublicApp] Published flows container not found');
             return;
         }
 
+        const flows = Array.isArray(flowsToRender) ? flowsToRender : [];
 
-        if (this.flows.length === 0) {
+        if (flows.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon"><i data-feather="layers" class="icon-xl"></i></div>
@@ -220,11 +121,40 @@ class PublicApp {
             return;
         }
 
-        container.innerHTML = this.flows.map(flow => this.renderFlowCard(flow)).join('');
+        container.innerHTML = flows.map(flow => this.renderFlowCard(flow)).join('');
 
         if (typeof feather !== 'undefined') {
             feather.replace();
         }
+    }
+
+    /**
+     * Search published flows (by name, description, or materials) and update display
+     */
+    searchFlows(query) {
+        const container = document.getElementById('published-flows-container');
+        if (!container || !this.publishedFlowLoader) return;
+
+        const searchTerm = (query || '').trim();
+        const results = searchTerm
+            ? this.publishedFlowLoader.searchFlows(searchTerm)
+            : this.publishedFlowLoader.getFlows();
+
+        if (!results || results.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i data-feather="search" class="icon-xl"></i></div>
+                    <h3>No Flows Found</h3>
+                    <p>Try adjusting your search terms or clearing the search box.</p>
+                </div>
+            `;
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+            return;
+        }
+
+        this.updateFlowsDisplay(results);
     }
 
     /**
@@ -254,7 +184,7 @@ class PublicApp {
      * Show flow details
      */
     showFlowDetails(flowId) {
-        const flow = this.flowLoader.getFlowById(flowId);
+        const flow = this.publishedFlowLoader.getFlowById(flowId);
         if (!flow) {
             this.showNotification('Flow not found', 'error');
             return;
@@ -974,5 +904,13 @@ document.addEventListener('DOMContentLoaded', function () {
         window.previewManager = new window.PreviewManager(minimalApp);
     }
 
-    window.publicApp.init();
+    window.publicApp.init()
+        .then(() => {
+            if (window.publicApp && typeof window.publicApp.browseAllItems === 'function') {
+                return window.publicApp.browseAllItems();
+            }
+        })
+        .catch(error => {
+            console.error('[PublicApp] Initialization failed:', error);
+        });
 });

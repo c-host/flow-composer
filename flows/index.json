@@ -1,5 +1,8 @@
 {
     "flows": [
-        "khudoni_archival_collection_flow.json"
+        "khudoni_archival_collection_flow.json",
+        "industrial_impact_and_ecological_wounds_flow.json",
+        "risk_formation_and_natural_disasters_flow.json",
+        "river_access_and_community_rights_flow.json"
     ]
 }
