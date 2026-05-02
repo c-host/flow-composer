@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Project Information</title>
+    <meta name="description" content="Information about the Dineba archive project.">
+
+    <link rel="icon" type="image/x-icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12h18m-9-9l9 9-9 9'/></svg>">
+
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = saved ? saved : (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) { }
+        }());
+    </script>
+</head>
+
+<body>
+    <nav class="navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span id="nav-logo-text">Dineba</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="about.html" class="nav-theme-btn nav-info-btn nav-info-btn-active"
+                        aria-label="Project information page">
+                        <i data-feather="info" class="theme-icon"></i>
+                    </a></li>
+                <li><button id="theme-toggle" class="nav-theme-btn" aria-label="Toggle theme">
+                        <i data-feather="sun" class="theme-icon"></i>
+                    </button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="page">
+        <div class="container">
+            <section class="project-info-section">
+                <div class="project-info-header">
+                    <h2>Project Information</h2>
+                    <a href="/" class="btn btn-secondary project-back-btn">
+                        <i data-feather="arrow-left" class="icon-md"></i>
+                        Back to Home
+                    </a>
+                </div>
+
+                <div class="project-info-content">
+                    <p>Dineba – A Digital Archive of Georgia’s Ecological Landscape is a multi-phase project directed
+                        towards establishing a digital archive of the ecological landscape in Georgia, alongside a
+                        step-by-step decentralization of the archive’s governance. By decentralizing its governance
+                        process, the archive will become more stable, contextual, and relevant, while ensuring its
+                        polyphonic nature – involving and vocalizing the numerous voices that have, over the years,
+                        shaped this landscape in different ways.</p>
+
+                    <p>The archive currently includes more than 70 items uploaded to the Internet Archive, addressing
+                        environmental, social, and infrastructural dynamics across Georgia. It brings together research
+                        on environmental risk formation, climate change–intensified disasters, and state approaches to
+                        disaster management, as well as questions of river access, collective rights, and the
+                        relationship between communities and natural resources. It also explores hydropower
+                        infrastructure, patterns of resistance to extractivist development, and the lasting material
+                        and psychological impact of industrial activity on landscapes and communities.</p>
+
+                    <p>The project is now entering its next stage of development, focusing on the archive’s website
+                        and the long-term preservation of its materials. Dineba has also been accepted into “Community
+                        Webs”, a program of Archive-It and the Internet Archive that supports cultural heritage
+                        organizations in documenting and preserving digital heritage through web archiving and
+                        community-based practices.</p>
+
+                    <p>Dineba aims to use the tools and infrastructure it has developed to empower communities and
+                        researchers to both contribute to and engage directly with the archive, fostering awareness of
+                        the importance of archiving practices, while supporting the creation of narratives and
+                        collective memory around it.</p>
+
+                    <div class="project-meta">
+                        <p class="project-meta-line"><strong>Archive contributors:</strong> Elisabed Gedevanishvili,
+                            Ana Mikadze, Tatuli Japoshvili and Giga Tsikarishvili (platform wit[h]nessing), Eka
+                            Tsotsoria</p>
+                        <p class="project-meta-line"><strong>Archive lead:</strong> Nina Akhvlediani</p>
+                        <p class="project-meta-line"><strong>Website design:</strong> Cent Holsten</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p id="footer-text">Loading...</p>
+        </div>
+    </footer>
+
+    <script src="js/configLoader.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            if (window.configLoader) {
+                try {
+                    const config = await window.configLoader.load();
+                    document.getElementById('page-title').textContent = `${config.projectTitle} - Project Information`;
+                    document.getElementById('nav-logo-text').textContent = config.projectTitle;
+
+                    const footerText = document.getElementById('footer-text');
+                    if (config.footerLink) {
+                        footerText.innerHTML = `${config.footerText} <a href="${config.footerLink}">${config.footerLinkText}</a>.`;
+                    } else {
+                        footerText.textContent = config.footerText;
+                    }
+                } catch (error) {
+                    console.error('Error loading configuration:', error);
+                }
+            }
+
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function () {
+                    const currentTheme = document.documentElement.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    feather.replace();
+                });
+            }
+
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    </script>
+</body>
+
+</html>

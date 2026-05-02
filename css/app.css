@@ -819,6 +819,52 @@ a.btn {
 }
 
 /* ==========================================================================
+   PROJECT INFO PAGE
+   ========================================================================== */
+
+.project-info-section {
+    max-width: 900px;
+    margin: var(--spacing-10) auto;
+}
+
+.project-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.project-info-header h2 {
+    margin: 0;
+}
+
+.project-info-content p {
+    font-size: var(--font-size-base);
+    line-height: 1.8;
+    margin-bottom: var(--spacing-5);
+}
+
+.project-info-content p:last-child {
+    margin-bottom: 0;
+}
+
+.project-meta {
+    margin-top: 0;
+    max-width: 500px;
+}
+
+.project-meta-line {
+    margin: 0.3rem 0 !important;
+    line-height: 1.7 !important;
+}
+
+.project-back-btn {
+    gap: var(--spacing-2);
+    white-space: nowrap;
+}
+
+/* ==========================================================================
    TWO-PANEL LAYOUT
    ========================================================================== */
 
@@ -2284,6 +2330,7 @@ a.btn {
     max-height: 91vh;
     width: auto;
     min-width: 600px;
+    border-radius: 0;
 }
 
 #flow-details-modal .modal-body {
@@ -4131,6 +4178,7 @@ a.btn {
         max-height: 88vh;
         min-width: auto;
         width: 95vw;
+        border-radius: 0;
     }
 
     #flow-details-modal .modal-body {
@@ -4538,6 +4586,15 @@ a.btn {
     color: var(--text-primary);
 }
 
+.nav-info-btn {
+    padding: 0.5rem;
+}
+
+.nav-info-btn-active,
+.nav-info-btn:hover {
+    color: var(--text-primary);
+}
+
 .theme-icon {
     width: 1.25rem;
     height: 1.25rem;
@@ -4637,6 +4694,24 @@ a.btn {
 
 /* Responsive adjustments for help modal */
 @media (max-width: 768px) {
+    .project-info-section {
+        margin: var(--spacing-6) auto;
+        padding: 0 var(--spacing-5) var(--spacing-2) var(--spacing-5);
+    }
+
+    .project-info-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .project-back-btn {
+        width: auto;
+        align-self: flex-start;
+        order: -1;
+        padding: var(--spacing-2);
+        margin-bottom: var(--spacing-2);
+    }
+
     .help-modal-content {
         width: 95vw;
         max-height: 95vh;

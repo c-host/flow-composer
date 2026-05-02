@@ -339,6 +339,24 @@ class PublicApp {
         if (window.previewManager) {
             try {
                 await window.previewManager.previewMaterial(identifier);
+
+                // On small screens the preview panel stacks below results; scroll it into view on selection.
+                if (window.matchMedia('(max-width: 768px)').matches) {
+                    const previewPanel = document.getElementById('preview-panel');
+                    const nav = document.querySelector('.navigation');
+                    if (previewPanel) {
+                        requestAnimationFrame(() => {
+                            const navHeight = nav ? nav.offsetHeight : 0;
+                            const panelTop = previewPanel.getBoundingClientRect().top + window.scrollY;
+                            const offset = 8;
+                            window.scrollTo({
+                                top: Math.max(panelTop - navHeight - offset, 0),
+                                behavior: 'smooth'
+                            });
+                        });
+                    }
+                }
+
                 // Preview panel is already shown by previewManager
                 return;
             } catch (error) {
@@ -717,7 +735,7 @@ class PublicApp {
             resultsContainer.innerHTML = `
                 <div class="loading-state">
                     <div class="loading-spinner"></div>
-                    <p>Loading all items from collection...</p>
+                    <p>Loading archive...</p>
                 </div>
             `;
         }

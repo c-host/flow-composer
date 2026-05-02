@@ -134,7 +134,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "conversational",
       "order": 0
     },
     {
@@ -248,7 +248,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 1
     },
     {
@@ -374,7 +374,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "conversational",
       "order": 2
     },
     {
@@ -520,7 +520,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "academic",
       "order": 3
     },
     {
@@ -654,7 +654,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 4
     },
     {
@@ -792,7 +792,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 5
     },
     {
@@ -914,7 +914,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 6
     },
     {
@@ -1049,7 +1049,7 @@
           "year": 2023
         }
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 7
     },
     {
@@ -1173,7 +1173,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 8
     }
   ],
@@ -1244,11 +1244,11 @@
     }
   ],
   "documentTypeCoverage": {
-    "photographic": 0,
-    "conversational": 0,
+    "photographic": 6,
+    "conversational": 2,
     "endangered": 0,
-    "academic": 0,
-    "policy": 9,
+    "academic": 1,
+    "policy": 0,
     "financial": 0,
     "ephemeral": 0,
     "institutional": 0

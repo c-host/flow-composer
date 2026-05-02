@@ -148,7 +148,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "academic",
       "order": 0
     },
     {
@@ -282,7 +282,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "ephemeral",
       "order": 1
     },
     {
@@ -414,7 +414,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "institutional",
       "order": 2
     },
     {
@@ -542,7 +542,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 3
     },
     {
@@ -682,7 +682,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "institutional",
       "order": 4
     },
     {
@@ -822,7 +822,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "institutional",
       "order": 5
     },
     {
@@ -958,7 +958,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "institutional",
       "order": 6
     },
     {
@@ -1090,7 +1090,7 @@
         },
         "notes": ""
       },
-      "documentType": "policy",
+      "documentType": "photographic",
       "order": 7
     }
   ],
@@ -1161,14 +1161,14 @@
     }
   ],
   "documentTypeCoverage": {
-    "photographic": 0,
+    "photographic": 2,
     "conversational": 0,
     "endangered": 0,
-    "academic": 0,
-    "policy": 8,
+    "academic": 1,
+    "policy": 0,
     "financial": 0,
-    "ephemeral": 0,
-    "institutional": 0
+    "ephemeral": 1,
+    "institutional": 4
   },
   "created": "2025-12-05T14:20:11.819Z",
   "lastModified": "2025-12-05T14:20:11.819Z",

@@ -5,7 +5,7 @@
   "projectDescription": "Explore Dineba, a digital archive of Georgia's ecological landscape",
   "collectionId": "dineba",
   "collectionUrl": "https://archive.org/details/dineba",
-  "footerText": "Dineba: A Digital Archive of Georgia's Ecological Landscape. Hosted on the",
+  "footerText": "A <a href=\"https://dineba.ge/\">Dineba</a> project, hosted on the",
   "footerLink": "https://archive.org/details/dineba",
   "footerLinkText": "Internet Archive",
   "documentTypes": [
@@ -59,4 +59,3 @@
     }
   ]
 }
-
